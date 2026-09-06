@@ -1,0 +1,556 @@
+{
+  "name": "CH - Resumidor de Sesión",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### Resumidor de contexto agentico (Modulo 3)\nRecibe `chatId` (Session_ID). Junta los mensajes de esa sesion, le pide a un modelo barato el resumen de 3 claves exigido por la consigna: `asunto_principal`, `puntos_clave`, `accion_requerida`. Hace upsert en `Resumenes_Sesion` (una fila por Session_ID, siempre la version mas reciente).",
+        "height": 190,
+        "width": 900
+      },
+      "id": "02efef9f-b295-4415-adb6-0adf0c645943",
+      "name": "Nota",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -336,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "chatId"
+            }
+          ]
+        }
+      },
+      "id": "022fe702-ba66-4935-b5c4-55a661104b95",
+      "name": "Trigger: recibir tarea",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblm69F6hNfw9A1EJ",
+          "mode": "list",
+          "cachedResultName": "Memoria_conversaciones",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblm69F6hNfw9A1EJ"
+        },
+        "filterByFormula": "={{ '{Session_ID} = \"' + $json.chatId + '\"' }}",
+        "options": {},
+        "sort": {
+          "property": [
+            {
+              "field": "Fecha"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        240
+      ],
+      "id": "0d719789-4939-402d-8a47-2c6d5446fc54",
+      "name": "Buscar mensajes de la sesión",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.conversacion }}",
+        "options": {
+          "systemMessage": "ROL: Resumis una conversacion entre un asesor humano de Neblina Forest (agencia de turismo de observacion de aves) y su asistente interno de IA, que lo ayuda a consultar datos de clientes. Tu unica tarea es RESUMIR, no transcribir: nunca respondas como si fueras el asistente, nunca inventes datos que no esten en la conversacion.\n\nREGLA CRITICA DE COMPRESION: la herramienta del asistente puede volver a traer, en cualquier momento, todos los datos puntuales de un cliente (numero de pasaporte, alergias, medidas, puntajes de interes, fechas de documentos, etc.) -- por eso NUNCA copies esos valores en el resumen, aunque hayan aparecido en la conversacion. El resumen tiene que dar contexto rapido para el proximo turno, no duplicar la base de datos. Un buen punto_clave dice QUE paso o QUE se encontro (por ejemplo 'se reviso la ficha de Carlos Ramirez, esta completa' o 'el cliente NF-MTMGB1G9 tiene la ficha incompleta'), nunca copia el dato en si (nunca 'pasaporte AR1234567' ni 'alergia a los frutos secos' ni listas de puntajes de interes).\n\nA partir del texto de la conversacion, generá un resumen con exactamente estas 3 claves:\n- asunto_principal: una sola frase corta que resuma de que trato la conversacion en general.\n- puntos_clave: arreglo de MAXIMO 5 strings cortos, cada uno un hecho o hallazgo relevante -- que clientes se consultaron y para que, problemas o faltantes detectados, decisiones tomadas. Nunca datos puntuales de un cliente.\n- accion_requerida: que necesita hacer el asesor a continuacion, como string corto, o null si no hay ninguna accion pendiente.\n\nSALIDA: devolve UNICAMENTE un objeto JSON con esas 3 claves, todas al mismo nivel, sin markdown, sin bloque de codigo, sin texto antes o despues del JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        480,
+        240
+      ],
+      "id": "a91f0e67-3842-413b-96fe-3914d4a9c46c",
+      "name": "Resumir (AI Agent)",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhjqtEVwbjeESAd",
+          "mode": "list",
+          "cachedResultName": "Resumenes_session",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblhjqtEVwbjeESAd"
+        },
+        "filterByFormula": "={{ '{Session_ID} = \"' + $json.chatId + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        224
+      ],
+      "id": "44597a3d-285d-471a-87b3-ebca8b38a35c",
+      "name": "Buscar resumen existente",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e2c40001-0000-4000-8000-000000000009",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1312,
+        224
+      ],
+      "id": "8808269a-fc50-4697-ab96-bd670850091c",
+      "name": "¿Ya existe resumen?"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhjqtEVwbjeESAd",
+          "mode": "list",
+          "cachedResultName": "Resumenes_session",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblhjqtEVwbjeESAd"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "Fecha de actualización": "={{ $now.toISODate() }}",
+            "Resumen_consolidado": "={{ $('Normalizar resumen').first().json.resumenConsolidado }}",
+            "Estado del caso": "={{ $('Normalizar resumen').first().json.estadoDelCaso }}",
+            "Datos claves": "={{ $('Normalizar resumen').first().json.datosClave }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Session_ID",
+              "displayName": "Session_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen_consolidado",
+              "displayName": "Resumen_consolidado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de actualización",
+              "displayName": "Fecha de actualización",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado del caso",
+              "displayName": "Estado del caso",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Datos claves",
+              "displayName": "Datos claves",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        128
+      ],
+      "id": "eec079c2-6d6a-4039-8ce3-aaf5af87028b",
+      "name": "Actualizar resumen",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhjqtEVwbjeESAd",
+          "mode": "list",
+          "cachedResultName": "Resumenes_session",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblhjqtEVwbjeESAd"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Session_ID": "={{ $('Normalizar resumen').first().json.chatId }}",
+            "Fecha de actualización": "={{ $now.toISODate() }}",
+            "Resumen_consolidado": "={{ $('Normalizar resumen').first().json.resumenConsolidado }}",
+            "Estado del caso": "={{ $('Normalizar resumen').first().json.estadoDelCaso }}",
+            "Datos claves": "={{ $('Normalizar resumen').first().json.datosClave }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Session_ID",
+              "displayName": "Session_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen_consolidado",
+              "displayName": "Resumen_consolidado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de actualización",
+              "displayName": "Fecha de actualización",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado del caso",
+              "displayName": "Estado del caso",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Datos claves",
+              "displayName": "Datos claves",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        320
+      ],
+      "id": "f1c4bb14-eafa-4297-90b6-9b8c36b320d7",
+      "name": "Crear resumen",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n// Airtable Search devuelve los valores anidados bajo 'fields', no en el\n// nivel superior del item -- por eso se lee i.json.fields.X, no i.json.X.\nconst texto = items.map(i => {\n  const f = i.json.fields || {};\n  return `${f.Rol || '??'}: ${f.Mensaje || ''}`;\n}).join('\\n');\nreturn [{ json: { conversacion: texto || '(sin mensajes)' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        240
+      ],
+      "id": "61166a26-2a47-447b-af36-c22c2b2c70b6",
+      "name": "Armar texto de conversación"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        432
+      ],
+      "id": "ab5e0624-6faf-4c2b-9ccd-d49b1f43d903",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "KEu1v8a7r7oKfrrh",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\n\n// Mismo patron tolerante que el resto del proyecto: acepta texto u objeto\n// ya estructurado, y desenvuelve una posible clave extra 'output'.\nlet raw = item.output;\nif (raw && typeof raw === 'object') {\n  raw = raw.output && typeof raw.output === 'object' ? raw.output : raw;\n} else {\n  raw = (raw || '').toString().replace(/```json|```/g, '').trim();\n  try {\n    const parsed = JSON.parse(raw);\n    raw = (parsed.output && typeof parsed.output === 'object') ? parsed.output : parsed;\n  } catch (e) {\n    raw = null;\n  }\n}\n\nconst data = raw;\nconst asuntoPrincipal = (data && data.asunto_principal) || 'Sin asunto identificado';\nconst puntosClave = (data && Array.isArray(data.puntos_clave)) ? data.puntos_clave : [];\nconst accionRequerida = (data && data.accion_requerida) || null;\n\nreturn [{\n  json: {\n    resumenConsolidado: asuntoPrincipal,\n    datosClave: puntosClave.join('\\n'),\n    estadoDelCaso: accionRequerida || 'Sin acciones pendientes',\n    chatId: String($('Trigger: recibir tarea').first().json.chatId)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        864,
+        224
+      ],
+      "id": "b883b1f0-0ef3-4fa4-9fed-31d81ebac2ed",
+      "name": "Normalizar resumen"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger: recibir tarea": {
+      "main": [
+        [
+          {
+            "node": "Buscar mensajes de la sesión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar mensajes de la sesión": {
+      "main": [
+        [
+          {
+            "node": "Armar texto de conversación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resumir (AI Agent)": {
+      "main": [
+        [
+          {
+            "node": "Normalizar resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar resumen existente": {
+      "main": [
+        [
+          {
+            "node": "¿Ya existe resumen?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Ya existe resumen?": {
+      "main": [
+        [
+          {
+            "node": "Actualizar resumen",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear resumen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Armar texto de conversación": {
+      "main": [
+        [
+          {
+            "node": "Resumir (AI Agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Resumir (AI Agent)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar resumen": {
+      "main": [
+        [
+          {
+            "node": "Buscar resumen existente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "133124fe-b366-472c-99e2-6c93a22f2bab",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "urVD6H6JLgFRPd7g",
+  "tags": []
+}

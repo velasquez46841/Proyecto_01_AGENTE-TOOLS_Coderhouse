@@ -1,0 +1,588 @@
+{
+  "name": "CH - Worker de Vuelos",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "### WORKER · Extractor de Vuelo\n**Entrada esperada:** `{ subject, body, email }`\n**Salida garantizada:** `{ status: \"success\"|\"error\", data: { aerolinea, numero_vuelo, aeropuerto_salida, aeropuerto_llegada, fecha_salida, hora_salida, fecha_llegada, hora_llegada, codigo_reserva, confianza, estado_validacion, motivo }, meta: {...} }`\n**Regla de duda:** falta de datos criticos (numero_vuelo o fecha_salida) o confianza < 0.7 -> `estado_validacion: \"conflicto\"`, nunca se marca \"completo\" sin evidencia solida.\n**email** viene del clasificador del Manager (campo `remitente`) mientras se prueba con el Chat Trigger. Cuando migres a Gmail real, reemplazalo por el email real del remitente del correo — no hace falta tocar nada de este Worker.\n**El `Cliente` se busca por email** antes de guardar el vuelo — si no se encuentra, no se crea nada suelto, se avisa al asesor.",
+        "height": 230,
+        "width": 960
+      },
+      "id": "a513af64-4fd9-47b9-b257-6730202db6c7",
+      "name": "Nota: contrato de este Worker",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        -480
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "={{ 'Vuelo sin cliente asociado · ' + $('Resultado de extracción').first().json.data.estado_validacion }}",
+        "message": "={{ 'Llego un correo con datos de vuelo, pero el email \"' + $('Preparar entrada (recorte de tokens)').first().json.email + '\" no coincide con ningun cliente registrado.\\n\\nDatos extraidos: ' + JSON.stringify($('Resultado de extracción').first().json.data) + '\\n\\nRevisar manualmente y vincular a mano si corresponde.' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        256
+      ],
+      "id": "ab0bae1a-c1e2-4757-9ba1-5bdbe8dbc31e",
+      "name": "Aviso: cliente no encontrado",
+      "webhookId": "99605342-8ac6-4d56-bf5a-1785ea35e695",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c9a20001-0000-4000-8000-00000000000d",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        816,
+        128
+      ],
+      "id": "90d01ceb-86e7-4ba1-8e2e-e130ca4e2990",
+      "name": "¿Cliente encontrado?"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKMUlG9UzdjTlrv",
+          "mode": "list",
+          "cachedResultName": "Clientes",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblKMUlG9UzdjTlrv"
+        },
+        "filterByFormula": "={{ '{Email} = \"' + $('Preparar entrada (recorte de tokens)').first().json.email + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        592,
+        128
+      ],
+      "id": "736ad929-2bde-45e0-bc18-5bf7f6022e60",
+      "name": "Search Cliente por email",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        368,
+        128
+      ],
+      "id": "784015b3-01d8-44d1-864b-ae3f886d3867",
+      "name": "Resultado de extracción"
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = $input.first().json;\nreturn [{\n  json: {\n    status: 'error',\n    data: {\n      aerolinea: null,\n      numero_vuelo: null,\n      aeropuerto_salida: null,\n      aeropuerto_llegada: null,\n      fecha_salida: null,\n      hora_salida: null,\n      fecha_llegada: null,\n      hora_llegada: null,\n      codigo_reserva: null,\n      confianza: 0,\n      // Mismo criterio que la Guardia de arriba, aplicado a un fallo del\n      // Worker: nunca se marca 'completo' cuando ni siquiera se pudo\n      // llamar al modelo.\n      estado_validacion: 'conflicto',\n      motivo: 'No se pudo evaluar automaticamente: el Worker fallo.',\n      reason: 'worker_call_failed',\n      detail: (err.error && err.error.message) || err.message || 'Error desconocido al invocar el modelo'\n    },\n    meta: { worker: 'worker_vuelos' }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        256
+      ],
+      "id": "3c8e1142-67f8-47b9-bcda-e22db2e4d54e",
+      "name": "Contingencia por fallo"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst UMBRAL_CONFIANZA = 0.7;\n\n// Mismo patron tolerante que el resto de los Workers: acepta texto u\n// objeto ya estructurado, y desenvuelve una posible clave extra 'output'.\nlet raw = item.output;\nif (raw && typeof raw === 'object') {\n  raw = raw.output && typeof raw.output === 'object' ? raw.output : raw;\n} else {\n  raw = (raw || '').toString().replace(/```json|```/g, '').trim();\n  try {\n    const parsed = JSON.parse(raw);\n    raw = (parsed.output && typeof parsed.output === 'object') ? parsed.output : parsed;\n  } catch (e) {\n    raw = null;\n  }\n}\n\nconst data = raw;\nconst n = data ? Number(data.confianza) : 0;\nconst confianza = Number.isFinite(n) ? n : 0;\n\n// Guardia - Taxonomia cerrada de estado: sin numero de vuelo o fecha de\n// salida, o con confianza baja, se marca 'conflicto' -- nunca se marca\n// 'completo' sin evidencia solida, porque un vuelo mal cargado es peor\n// que uno pendiente de revisar.\nconst tieneDatosMinimos = data && data.numero_vuelo && data.fecha_salida;\nlet estado_validacion;\nlet motivo;\nif (!data) {\n  estado_validacion = 'conflicto';\n  motivo = 'No se pudo interpretar la respuesta del modelo.';\n} else if (!tieneDatosMinimos || confianza < UMBRAL_CONFIANZA) {\n  estado_validacion = 'conflicto';\n  motivo = data.motivo || 'Extraccion incompleta o de baja confianza, requiere revision manual.';\n} else {\n  estado_validacion = 'completo';\n  motivo = data.motivo || 'Itinerario extraido correctamente.';\n}\n\nreturn [{\n  json: {\n    status: 'success',\n    data: {\n      aerolinea: (data && data.aerolinea) || null,\n      numero_vuelo: (data && data.numero_vuelo) || null,\n      aeropuerto_salida: (data && data.aeropuerto_salida) || null,\n      aeropuerto_llegada: (data && data.aeropuerto_llegada) || null,\n      fecha_salida: (data && data.fecha_salida) || null,\n      hora_salida: (data && data.hora_salida) || null,\n      fecha_llegada: (data && data.fecha_llegada) || null,\n      hora_llegada: (data && data.hora_llegada) || null,\n      codigo_reserva: (data && data.codigo_reserva) || null,\n      confianza,\n      estado_validacion,\n      motivo\n    },\n    meta: { worker: 'worker_vuelos', model: 'gemini-agent' }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        144,
+        32
+      ],
+      "id": "6f0ba643-7cc5-4f89-932e-f69c8b93c6b2",
+      "name": "Normalizar salida (éxito)"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -272,
+        352
+      ],
+      "id": "9d05a576-07d6-47f7-bb69-116c80ec50d0",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vooM42BDEHxtgqxh",
+          "name": "Google Gemini CODERHOUSE"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Asunto: ' + $json.subject + '\\n\\nCuerpo:\\n' + $json.body_trimmed }}",
+        "options": {
+          "systemMessage": "ROL: Extraes datos de un vuelo internacional a partir de un correo o texto reenviado por un pasajero de Neblina Forest, agencia de turismo de observacion de aves. Tu unica tarea es extraer datos estructurados: nunca redactes una respuesta ni sugieras una accion. EXTRACCION: del texto, extrae los siguientes datos si estan presentes: aerolinea (nombre de la aerolinea), numero_vuelo (codigo del vuelo, ej. LA455), aeropuerto_salida (codigo IATA de 3 letras si esta disponible, o el nombre de la ciudad/aeropuerto), aeropuerto_llegada (idem), fecha_salida (formato AAAA-MM-DD), hora_salida (formato HH:MM), fecha_llegada (formato AAAA-MM-DD), hora_llegada (formato HH:MM), codigo_reserva (codigo de reserva o PNR de la aerolinea). Si un dato no aparece explicitamente en el texto, usa null en esa clave -- nunca inventes ni asumas un valor que no este en el texto. CALIBRACION DE CONFIANZA: 0.90 a 1.00 si los datos criticos (numero de vuelo, fecha de salida) estan explicitos y sin ambiguedad en el texto. 0.70 a 0.89 si se infieren con razonable certeza. Menor a 0.70 si el texto es vago, esta incompleto, o estas adivinando. No infles la confianza. SALIDA: devolve UNICAMENTE un objeto JSON con las claves aerolinea, numero_vuelo, aeropuerto_salida, aeropuerto_llegada, fecha_salida, hora_salida, fecha_llegada, hora_llegada, codigo_reserva, confianza, y motivo (una frase corta explicando la calibracion de confianza). Todas al mismo nivel, sin envolver el objeto en ninguna clave adicional, sin markdown, sin bloque de codigo, sin texto antes o despues del JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -256,
+        128
+      ],
+      "id": "937425c6-6e05-45c5-a12c-f80ab82c90ef",
+      "name": "Extraer itinerario (AI Agent)",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c9a20001-0000-4000-8000-000000000003",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.subject || '(sin asunto)' }}"
+            },
+            {
+              "id": "c9a20001-0000-4000-8000-000000000004",
+              "name": "body_trimmed",
+              "type": "string",
+              "value": "={{ $json.body ? $json.body.slice(0, 2000) : '' }}"
+            },
+            {
+              "id": "c9a20001-0000-4000-8000-000000000005",
+              "name": "email",
+              "type": "string",
+              "value": "={{ $json.email || '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f405c81e-9d34-4964-81ed-6b1cd0345193",
+      "name": "Preparar entrada (recorte de tokens)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -480,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "subject"
+            },
+            {
+              "name": "body"
+            },
+            {
+              "name": "email"
+            }
+          ]
+        }
+      },
+      "id": "5c128ef3-48d4-43a1-b0f6-afc2a1627c6e",
+      "name": "Trigger: recibir tarea",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8JJJdElcoaLak9",
+          "mode": "list",
+          "cachedResultName": "Vuelos",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tbl8JJJdElcoaLak9"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Aerolinea": "={{ $('Resultado de extracción').first().json.data.aerolinea }}",
+            "Numero de Vuelo": "={{ $('Resultado de extracción').first().json.data.numero_vuelo }}",
+            "Aeropuerto de salida": "={{ $('Resultado de extracción').first().json.data.aeropuerto_salida }}",
+            "Aeropuerto de llegada": "={{ $('Resultado de extracción').first().json.data.aeropuerto_llegada }}",
+            "Fecha y hora de salida": "={{ $('Resultado de extracción').first().json.data.fecha_salida ? ($('Resultado de extracción').first().json.data.fecha_salida + 'T' + ($('Resultado de extracción').first().json.data.hora_salida || '00:00') + ':00') : '' }}",
+            "Fecha y hora de llegada": "={{ $('Resultado de extracción').first().json.data.fecha_llegada ? ($('Resultado de extracción').first().json.data.fecha_llegada + 'T' + ($('Resultado de extracción').first().json.data.hora_llegada || '00:00') + ':00') : '' }}",
+            "Codigo de reserva de vuelo": "={{ $('Resultado de extracción').first().json.data.codigo_reserva }}",
+            "Estado de validación": "={{ $('Resultado de extracción').first().json.data.estado_validacion }}",
+            " Confianza": "={{ $('Resultado de extracción').first().json.data.confianza }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Vuelo_ID",
+              "displayName": "Vuelo_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nombre completo (from Cliente)",
+              "displayName": "Nombre completo (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Email (from Cliente)",
+              "displayName": "Email (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Aerolinea",
+              "displayName": "Aerolinea",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Numero de Vuelo",
+              "displayName": "Numero de Vuelo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Aeropuerto de salida",
+              "displayName": "Aeropuerto de salida",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Aeropuerto de llegada",
+              "displayName": "Aeropuerto de llegada",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha y hora de salida",
+              "displayName": "Fecha y hora de salida",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha y hora de llegada",
+              "displayName": "Fecha y hora de llegada",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Codigo de reserva de vuelo",
+              "displayName": "Codigo de reserva de vuelo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado de validación",
+              "displayName": "Estado de validación",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "pendiente",
+                  "value": "pendiente"
+                },
+                {
+                  "name": "completo",
+                  "value": "completo"
+                },
+                {
+                  "name": "conflicto",
+                  "value": "conflicto"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": " Confianza",
+              "displayName": " Confianza",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        64
+      ],
+      "id": "b7440886-ae9f-42c0-ba2e-232fb7c8eba1",
+      "name": "Create Vuelo",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "¿Cliente encontrado?": {
+      "main": [
+        [
+          {
+            "node": "Create Vuelo",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aviso: cliente no encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Cliente por email": {
+      "main": [
+        [
+          {
+            "node": "¿Cliente encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Resultado de extracción": {
+      "main": [
+        [
+          {
+            "node": "Search Cliente por email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contingencia por fallo": {
+      "main": [
+        [
+          {
+            "node": "Resultado de extracción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalizar salida (éxito)": {
+      "main": [
+        [
+          {
+            "node": "Resultado de extracción",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Extraer itinerario (AI Agent)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer itinerario (AI Agent)": {
+      "main": [
+        [
+          {
+            "node": "Normalizar salida (éxito)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contingencia por fallo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar entrada (recorte de tokens)": {
+      "main": [
+        [
+          {
+            "node": "Extraer itinerario (AI Agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger: recibir tarea": {
+      "main": [
+        [
+          {
+            "node": "Preparar entrada (recorte de tokens)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "32d52ce0-e14c-4a55-8bf8-8d844976a988",
+  "meta": {
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "8rMSdllMKhKnTL8j",
+  "tags": []
+}

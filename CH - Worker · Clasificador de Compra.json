@@ -1,0 +1,235 @@
+{
+  "name": "CH - Worker · Clasificador de Compra",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "subject"
+            },
+            {
+              "name": "body"
+            }
+          ]
+        }
+      },
+      "id": "21a50e54-5bd8-4dbe-b9c6-8b9a662570cc",
+      "name": "Trigger: recibir tarea",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### WORKER · Clasificador de Compra\n**Entrada esperada:** `{ subject, body }`\n\n-> Clasifica si un mail esta consultando por los tours ya armados que ofrece Neblina Forest o si desea tener un tour personalizado (con lo cual se lo escala a un asesor)",
+        "height": 230,
+        "width": 640
+      },
+      "id": "1e081bf5-0d26-43ed-ae6e-9365f27e5f59",
+      "name": "Nota: contrato de este Worker",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -32,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c1a1e001-0000-4000-8000-000000000003",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.subject || '(sin asunto)' }}"
+            },
+            {
+              "id": "c1a1e001-0000-4000-8000-000000000004",
+              "name": "body_trimmed",
+              "type": "string",
+              "value": "={{ $json.body ? $json.body.slice(0, 2000) : '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b265b5e8-2e25-4ea0-a8cc-a7fbe2492a71",
+      "name": "Preparar entrada (recorte de tokens)1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        112,
+        544
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Asunto: ' + $json.subject + '\\n\\nCuerpo:\\n' + $json.body_trimmed }}",
+        "options": {
+          "systemMessage": "ROL: Clasificas correos de leads interesados en los tours de Neblina Forest, agencia de turismo de observacion de aves. Neblina Forest mantiene un catalogo de tours ya armados en una base de datos que se actualiza periodicamente, filtrable por pais y fecha. Tu unica tarea es clasificar y extraer datos: nunca redactes una respuesta ni sugieras una accion. TIPO (taxonomia cerrada, exactamente 2 valores): ARMADO o PERSONALIZADO. ARMADO ES EL VALOR POR DEFECTO Y CUBRE LA GRAN MAYORIA DE LOS CASOS: el cliente quiere ver, conocer, consultar disponibilidad, o sumarse a alguno de los tours ya armados y programados. Esto incluye tanto consultas generales sin ningun detalle (\"que tours tienen\", \"quiero ver que salidas hay\", \"me interesa conocer sus tours\") como consultas puntuales sobre una salida especifica. NO hace falta que mencione un tour puntual, un pais, una fecha o una cantidad de personas para ser ARMADO -- el interes general en ver el catalogo ya es motivo suficiente, porque el cliente puede filtrar el catalogo el mismo despues. PERSONALIZADO ES LA EXCEPCION, NO LA REGLA. Requiere evidencia EXPLICITA de que el cliente pide algo disenado especificamente para el y sus acompanantes, distinto del catalogo existente: un itinerario privado, fechas propias que declara explicitamente que no coinciden con las salidas programadas, un grupo cerrado con un requerimiento particular (por ejemplo un evento familiar, una celebracion, un enfoque tematico especial), o el uso explicito de palabras como personalizado, a medida, disenar mi propio viaje, tour privado. Mencionar cuantas personas son o en que epoca les gustaria viajar NO es evidencia de personalizacion por si solo -- son solo datos utiles para filtrar el catalogo. PROCEDIMIENTO: si no hay evidencia explicita de personalizacion segun la lista de arriba, es ARMADO, sin excepcion. EXTRACCION: ademas del tipo, extrae paises_mencionados (lista de paises o destinos que el lead menciona como de interes, lista vacia si no menciona ninguno), fechas_mencionadas (mes, temporada o fecha que menciona, o null si no menciona ninguna), cantidad_personas (numero de personas si lo menciona, o null), y un resumen breve de dos o tres lineas de que esta pidiendo. CALIBRACION DE CONFIANZA: una consulta general de interes en los tours, incluso sin ningun detalle, es ARMADO con confianza alta, 0.85 a 1.00 -- es el caso esperado, no una adivinanza. Confianza menor a 0.85 en ARMADO solo aplica cuando el mensaje es realmente ambiguo entre las dos categorias. Para PERSONALIZADO: 0.90 a 1.00 si la evidencia de personalizacion es explicita en el texto, 0.70 a 0.89 si se infiere con razonable certeza. No infles la confianza en ninguno de los dos casos. El campo tipo se escribe en minusculas (armado o personalizado). CASO VACIO: si el cuerpo del correo esta vacio, es solo un asunto sin contenido, o no hay informacion suficiente para evaluar nada, no intentes explicarlo en texto libre. Devolve igual el mismo objeto JSON con: tipo personalizado, paises_mencionados como lista vacia, fechas_mencionadas null, cantidad_personas null, resumen indicando que no hay contenido suficiente para clasificar, confianza 0, y motivo explicando que el texto esta vacio o es insuficiente. SALIDA: devolve UNICAMENTE un objeto JSON con las claves tipo, paises_mencionados, fechas_mencionadas, cantidad_personas, resumen, confianza y motivo, todas al mismo nivel. Sin envolver el objeto en ninguna clave adicional, sin markdown, sin bloque de codigo, sin texto antes o despues del JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        368,
+        544
+      ],
+      "id": "b7420ce9-d4e2-40ef-a1f8-17824c050de1",
+      "name": "Clasificar tipo de compra (AI Agent)1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst UMBRAL_CONFIANZA = 0.75;\n\n// El modelo devuelve texto libre (sin Structured Output Parser, por el\n// bug de envoltorio detectado). Se parsea a mano, tolerando bloques\n// markdown y un posible envoltorio extra en 'output'.\nlet raw = item.output;\nif (raw && typeof raw === 'object') {\n  raw = raw.output && typeof raw.output === 'object' ? raw.output : raw;\n} else {\n  raw = (raw || '').toString().replace(/```json|```/g, '').trim();\n  try {\n    const parsed = JSON.parse(raw);\n    raw = (parsed.output && typeof parsed.output === 'object') ? parsed.output : parsed;\n  } catch (e) {\n    raw = null;\n  }\n}\n\nlet data = raw;\nif (data && typeof data.tipo === 'string') {\n  data = { ...data, tipo: data.tipo.toLowerCase() };\n}\n\nif (!data || !['armado', 'personalizado'].includes(data.tipo)) {\n  data = { tipo: 'personalizado', paises_mencionados: [], fechas_mencionadas: null, cantidad_personas: null, resumen: 'Clasificacion invalida, escalado para revision.', confianza: 0, motivo: 'Salida invalida del modelo.' };\n}\n\nconst n = Number(data.confianza);\nconst confianza = Number.isFinite(n) ? n : 0;\n\nif (data.tipo === 'armado' && confianza < UMBRAL_CONFIANZA) {\n  data.tipo = 'personalizado';\n}\n\nconst paises = Array.isArray(data.paises_mencionados)\n  ? data.paises_mencionados.filter(p => typeof p === 'string' && p.trim())\n  : [];\n\nreturn [{\n  json: {\n    status: 'success',\n    data: {\n      tipo: data.tipo,\n      paises_mencionados: paises,\n      requiere_pregunta_paises: data.tipo === 'armado' && paises.length === 0,\n      fechas_mencionadas: data.fechas_mencionadas || null,\n      cantidad_personas: (data.cantidad_personas !== undefined && data.cantidad_personas !== null) ? Number(data.cantidad_personas) : null,\n      resumen: data.resumen || '',\n      confianza,\n      umbral: UMBRAL_CONFIANZA,\n      motivo: data.motivo || ''\n    },\n    meta: { worker: 'worker_compra', model: 'gemini-agent' }\n  }\n}];"
+      },
+      "id": "e8c13243-4828-4300-91d5-7bbc6e5215eb",
+      "name": "Normalizar salida (éxito)1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = $input.first().json;\nreturn [{\n  json: {\n    status: 'error',\n    data: {\n      tipo: 'personalizado',\n      paises_mencionados: [],\n      requiere_pregunta_paises: false,\n      fechas_mencionadas: null,\n      cantidad_personas: null,\n      resumen: '',\n      confianza: 0,\n      umbral: 0.75,\n      motivo: 'No se pudo evaluar automaticamente: el Worker fallo.',\n      reason: 'worker_call_failed',\n      detail: (err.error && err.error.message) || err.message || 'Error desconocido al invocar el modelo'\n    },\n    meta: { worker: 'worker_compra' }\n  }\n}];"
+      },
+      "id": "8ac1850f-53b9-4459-8fef-7522aab33b42",
+      "name": "Contingencia por fallo1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        832,
+        704
+      ]
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-5-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        176,
+        768
+      ],
+      "id": "69d837db-f888-429e-a6b1-fdd31834e624",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "KEu1v8a7r7oKfrrh",
+          "name": "n8n free OpenAI API credits"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        368,
+        752
+      ],
+      "id": "633e2015-3ac2-48ab-be94-082d50caacf1",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vooM42BDEHxtgqxh",
+          "name": "Google Gemini CODERHOUSE"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger: recibir tarea": {
+      "main": [
+        [
+          {
+            "node": "Preparar entrada (recorte de tokens)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar entrada (recorte de tokens)1": {
+      "main": [
+        [
+          {
+            "node": "Clasificar tipo de compra (AI Agent)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar tipo de compra (AI Agent)1": {
+      "main": [
+        [
+          {
+            "node": "Normalizar salida (éxito)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contingencia por fallo1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        []
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Clasificar tipo de compra (AI Agent)1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 60
+  },
+  "versionId": "1dd4fe21-07c9-416d-b578-e5c4973b7a4c",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "9EYEomyTNUKII5wW",
+  "tags": []
+}

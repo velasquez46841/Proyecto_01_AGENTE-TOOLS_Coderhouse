@@ -1,0 +1,1628 @@
+{
+  "name": "CH - Manager · Orquestador Neblina Forest",
+  "nodes": [
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c4000000-0000-4000-8000-000000000701",
+              "name": "email",
+              "type": "string",
+              "value": "={{ $json.email || $json.remitente || '' }}"
+            },
+            {
+              "id": "c4000000-0000-4000-8000-000000000702",
+              "name": "nombre",
+              "type": "string",
+              "value": "={{ $json.nombre || '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "09139fd2-1ecc-4ead-866c-44410ace81b7",
+      "name": "④ Validar contacto para CRM",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7728,
+        1184
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c4000000-0000-4000-8000-000000000704",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7920,
+        1168
+      ],
+      "id": "57ccc969-fcf4-4191-a337-cb9129f8f716",
+      "name": "¿Email válido?"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        8368,
+        1296
+      ],
+      "id": "08f1cd2b-0645-495b-a8d8-ac38a5f4e0f1",
+      "name": "Sin email, se omite CRM"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "subject": "=Oferta de tours armados — {{ $('④ Validar contacto para CRM').first().json.nombre || 'cliente' }} ({{ $('Filtrar tours por país').first().json.pais_solicitado || 'catálogo completo' }})",
+        "emailType": "html",
+        "message": "={{ $json.html }}",
+        "options": {
+          "sendTo": "={{ $('④ Validar contacto para CRM').first().json.email }}"
+        }
+      },
+      "id": "20ea92ba-91fb-4a34-b584-57fa94809666",
+      "name": "③ Gmail: Create Draft",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        9696,
+        1280
+      ],
+      "webhookId": "d5000000-0000-4000-8000-000000000802",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d5000000-0000-4000-8000-000000000803",
+              "name": "resumen",
+              "type": "string",
+              "value": "={{ '📩 *Nuevo borrador de tour armado listo para revisar*\\n\\nCliente: ' + ($('④ Validar contacto para CRM').first().json.nombre || $('④ Validar contacto para CRM').first().json.email) + '\\nDestino: ' + ($('Filtrar tours por país').first().json.pais_solicitado || 'catálogo completo') + '\\n\\n👉 Andá a Gmail → Borradores y revisalo antes de enviarlo. Nadie más lo va a mandar por vos.' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "11030dd8-cf1e-43d3-b9e4-3ee735b331f2",
+      "name": "④ Limpiar payload para Slack",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        9920,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "C0BV4N4S5NH",
+          "mode": "list",
+          "cachedResultName": "informal"
+        },
+        "text": "={{ $json.resumen }}",
+        "otherOptions": {}
+      },
+      "id": "87086e62-e100-4695-b0d8-00dec30b2a4c",
+      "name": "Avisar al equipo (Slack)",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        10144,
+        1280
+      ],
+      "webhookId": "e4cd4c23-697f-4230-b0df-d5070fd4c74e",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "LopK4buuN7k50ymd",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "email": "={{ $json.properties.email }}",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        8448,
+        896
+      ],
+      "id": "93736fa9-4af8-4b57-aa19-206a1bbf7850",
+      "name": "Update contact (existe)",
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "QXSSyjw1CvlvTrpI",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "email": "={{ $('¿Email válido?').item.json.email }}",
+        "additionalFields": {},
+        "options": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "position": [
+        8448,
+        1104
+      ],
+      "id": "d640a523-8589-4356-8b9b-c3592caf25ee",
+      "name": "Create contact (nuevo)",
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "QXSSyjw1CvlvTrpI",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "readStatus": "unread"
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        5952,
+        1136
+      ],
+      "id": "87655edf-808a-4708-9e7b-30345c1950c9",
+      "name": "Trigger: Email entrante1",
+      "webhookId": "b2000000-0000-4000-8000-000000000602",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b2000000-0000-4000-8000-000000000603",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "auto-reply",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "b2000000-0000-4000-8000-000000000604",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "out of office",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "b2000000-0000-4000-8000-000000000605",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "undeliverable",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "b2000000-0000-4000-8000-000000000606",
+              "leftValue": "={{ $json.Subject }}",
+              "rightValue": "respuesta automática",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "b2000000-0000-4000-8000-000000000607",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "no-reply",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "b2000000-0000-4000-8000-000000000608",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "noreply",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "b2000000-0000-4000-8000-000000000609",
+              "leftValue": "={{ $json.From }}",
+              "rightValue": "mailer-daemon",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        6192,
+        1136
+      ],
+      "id": "f1a7c95b-be8c-42ec-8207-3f0fa0e57eb1",
+      "name": "¿Es auto-reply?1"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        6432,
+        1008
+      ],
+      "id": "10a28fa9-eede-43ff-b7c9-62659e0b37a8",
+      "name": "Descartar auto-reply (corta el bucle)1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b2000000-0000-4000-8000-000000000612",
+              "name": "body",
+              "type": "string",
+              "value": "={{ $json.snippet }}"
+            },
+            {
+              "id": "7a5a4843-37ed-4e2d-9338-d041a03b59c5",
+              "name": "asunto",
+              "value": "={{ $json.Subject }}",
+              "type": "string"
+            },
+            {
+              "id": "c533904b-af95-42b7-a451-272fc57c6a85",
+              "name": "email",
+              "value": "={{ $json.From }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        6432,
+        1264
+      ],
+      "id": "88a97eab-be93-4e64-a2bb-d9cfd4427b00",
+      "name": "Preparar email entrante1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = ($input.first().json.output || '').toString();\n\n// Referencia tolerante al nombre del nodo: n8n le agrega un \"1\" (o \"2\", \"3\"...)\n// cada vez que pegás un nodo con un nombre que ya existe en el canvas. En vez\n// de perseguir el nombre exacto cada vez, probamos una lista de variantes.\nfunction leerOrigen(nombres) {\n  for (const nombre of nombres) {\n    try {\n      const item = $(nombre).first();\n      if (item) return item.json;\n    } catch (e) {\n      // este nodo no corrio en esta ejecucion (o no existe con ese nombre), seguimos probando\n    }\n  }\n  return null;\n}\n\nconst origenChat = leerOrigen(['When chat message received', 'When chat message received1']);\nconst origenEmail = leerOrigen(['Preparar email entrante', 'Preparar email entrante1']);\nconst origenTrigger = leerOrigen(['Trigger: Email entrante', 'Trigger: Email entrante1']);\nconst original = origenChat || origenEmail || {};\n\n// El remitente real viene de la cabecera 'from' del Gmail Trigger, nunca del\n// texto del cuerpo -- la IA solo lo devuelve si el remitente se auto-menciono\n// explicitamente, que es la excepcion, no la regla. 'Preparar email entrante'\n// ya expone ese dato como 'email' (confirmado que resuelve bien), asi que lo\n// leemos de ahi primero, con el trigger como respaldo.\nlet remitenteReal = null;\nconst emailCrudo = (origenEmail && origenEmail.email) || (origenTrigger && origenTrigger.from) || null;\nif (emailCrudo) {\n  const match = emailCrudo.match(/[\\w.+-]+@[\\w-]+\\.[\\w.-]+/);\n  remitenteReal = match ? match[0] : emailCrudo;\n}\n\n// El nombre visible del remitente sale de la misma cabecera 'from', que trae\n// el formato \"Nombre Apellido <email@dominio>\". Sacamos la parte del email\n// entre <> y nos quedamos con lo que sobra.\nlet nombreReal = null;\nconst fromCrudo = (origenTrigger && origenTrigger.from) || (origenEmail && origenEmail.email) || null;\nif (fromCrudo) {\n  const soloNombre = fromCrudo.replace(/<[^>]*>/g, '').trim();\n  if (soloNombre) nombreReal = soloNombre;\n}\n\n// Umbral de confianza. Arranca alto y conservador: cualquier categoria de\n// accion por debajo de este numero se degrada a REVISION. Se baja recien\n// cuando haya datos reales del acierto del clasificador.\nconst UMBRAL_CONFIANZA = 0.8;\nconst CATEGORIAS_VALIDAS = ['VUELOS', 'COMPRA', 'OTROS', 'REVISION'];\n\nlet data;\ntry {\n  const cleaned = raw.replace(/```json|```/g, '').trim();\n  data = JSON.parse(cleaned);\n} catch (e) {\n  data = null;\n}\n\nlet motivo_revision = null;\n\n// Guardia 1 - Taxonomia cerrada: salida fuera de las 4 categorias, o\n// parseo fallido, se fuerza a REVISION. Nunca se deja pasar valor libre.\nif (!data || !CATEGORIAS_VALIDAS.includes(data.categoria)) {\n  data = {\n    categoria: 'REVISION',\n    confianza: 0,\n    asunto: (data && data.asunto) || '(sin asunto)',\n    remitente: (data && data.remitente) || null\n  };\n  motivo_revision = 'salida_invalida';\n}\n\nconst n = Number(data.confianza);\nconst confianza = Number.isFinite(n) ? n : 0;\n\n// Guardia 2 - Umbral: solo degrada categorias de accion. Si el modelo ya\n// dijo REVISION, se respeta aunque venga con confianza alta (esta seguro\n// de que el caso es ambiguo, que es exactamente lo que se le pidio).\nlet categoria_sugerida = null;\nif (data.categoria !== 'REVISION' && confianza < UMBRAL_CONFIANZA) {\n  categoria_sugerida = data.categoria;\n  data.categoria = 'REVISION';\n  motivo_revision = 'confianza_bajo_umbral';\n}\n\nreturn [{\n  json: {\n    categoria: data.categoria,\n    categoria_sugerida,\n    confianza,\n    umbral: UMBRAL_CONFIANZA,\n    motivo_revision,\n    asunto: data.asunto || '(sin asunto)',\n    remitente: remitenteReal || data.remitente || null,\n    nombre: nombreReal || ((data.remitente && !data.remitente.includes('@')) ? data.remitente : null),\n    body: original.chatInput || original.body || ''\n  }\n}];"
+      },
+      "id": "e275ef4d-7f1b-4276-9d34-0da3df7bb85d",
+      "name": "Parsear clasificación1",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6960,
+        1264
+      ]
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "e1000000-0000-4000-8000-000000000101",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "VUELOS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "VUELOS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "e1000000-0000-4000-8000-000000000102",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "COMPRA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "COMPRA"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "e1000000-0000-4000-8000-000000000103",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "OTROS",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "OTROS"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 1
+                },
+                "conditions": [
+                  {
+                    "id": "e1000000-0000-4000-8000-000000000104",
+                    "leftValue": "={{ $json.categoria }}",
+                    "rightValue": "REVISION",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "REVISION"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "6aa952a3-c1cb-447b-a2d8-0361c909c685",
+      "name": "Enrutar por categoría1",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [
+        7216,
+        1232
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1000000-0000-4000-8000-000000000301",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.asunto }}"
+            },
+            {
+              "id": "e1000000-0000-4000-8000-000000000302",
+              "name": "body",
+              "type": "string",
+              "value": "={{ $json.body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "8e531c84-0ef3-4d83-a59a-078a79cf5533",
+      "name": "Preparar payload · Otros1",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7536,
+        1568
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "UHF0DpM6uwTL7g11",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/UHF0DpM6uwTL7g11",
+          "cachedResultName": "CH - Worker Otros"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "subject": "={{ $json.subject }}",
+            "body": "={{ $json.body }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "3814bf49-3f94-47ae-a31c-9583f112f9dc",
+      "name": "Delegar a Worker Otros1",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        7712,
+        1600
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "e1000000-0000-4000-8000-000000000401",
+              "leftValue": "={{ $json.data.importancia }}",
+              "rightValue": "alta",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6f9f1dc0-50b7-4199-bd43-1752835845af",
+      "name": "¿Importancia alta?1",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        7920,
+        1600
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "2f65780a-7cc8-4e80-be86-77062426895c",
+      "name": "Baja prioridad: sin aviso1",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        8224,
+        1712
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "={{ 'Log Neblina Forest · ' + $('Delegar a Worker Otros1').first().json.meta.worker + ' · ' + $('Delegar a Worker Otros1').first().json.status }}",
+        "message": "={{ 'Worker invocado: ' + $('Delegar a Worker Otros1').first().json.meta.worker + '\\nParametros enviados: ' + JSON.stringify($('Preparar payload · Otros1').first().json) + '\\nEstado: ' + $('Delegar a Worker Otros1').first().json.status + '\\nRespuesta: ' + JSON.stringify($('Delegar a Worker Otros1').first().json.data) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        8640,
+        1536
+      ],
+      "id": "cea59cdd-8522-4e10-8911-944de2cd567b",
+      "name": "Registrar en log · Otros1",
+      "webhookId": "b1a2c3d4-e5f6-4789-90ab-cdef01234567",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "<table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#eaeeeb;padding:24px 0;font-family:Arial,Helvetica,sans-serif;\">\n  <tr>\n    <td align=\"center\">\n      <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#ffffff;border-radius:8px;overflow:hidden;border:1px solid #d8e0da;\">\n\n        <!-- Encabezado -->\n        <tr>\n          <td style=\"background:#14201c;padding:20px 28px;\">\n            <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n              <tr>\n                <!-- Logo de Neblina Forest -->\n                <td width=\"44\" valign=\"middle\" style=\"width:44px;padding-right:14px;\">\n                  <img src=\"https://drive.google.com/thumbnail?id=1tFcznyvzCxm179s-y0n3Avdn-O-5XSQM&sz=w200\" width=\"44\" height=\"44\" alt=\"Neblina Forest\" style=\"display:block;border-radius:50%;object-fit:cover;background:#0e6b5e;\">\n                </td>\n                <!-- Texto del encabezado, centrado a la misma altura que el logo -->\n                <td valign=\"middle\">\n                  <table role=\"presentation\" cellpadding=\"0\" cellspacing=\"0\">\n                    <tr>\n                      <td style=\"font-size:18px;font-weight:bold;color:#ffffff;\">\n                        ⚠️ Correo importante detectado\n                      </td>\n                    </tr>\n                    <tr>\n                      <td style=\"padding-top:4px;font-size:13px;color:#9db5ac;\">\n                        Sistema de agentes · Neblina Forest\n                      </td>\n                    </tr>\n                  </table>\n                </td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n\n        <!-- Badge de categoria -->\n        <tr>\n          <td style=\"padding:20px 28px 0 28px;\">\n            <span style=\"display:inline-block;background:#d6e6e1;color:#0a544a;font-size:12px;font-weight:bold;letter-spacing:0.06em;text-transform:uppercase;padding:5px 12px;border-radius:4px;\">\n              {{ $json.data.categoria }}\n            </span>\n          </td>\n        </tr>\n\n        <!-- Detalle de la clasificacion -->\n        <tr>\n          <td style=\"padding:16px 28px 4px 28px;\">\n            <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"font-size:14px;color:#14201c;\">\n              <tr>\n                <td style=\"padding:8px 0;border-bottom:1px solid #e1e7e2;width:130px;color:#6b7a73;\">Motivo</td>\n                <td style=\"padding:8px 0;border-bottom:1px solid #e1e7e2;\">{{ $json.data.motivo }}</td>\n              </tr>\n              <tr>\n                <td style=\"padding:8px 0;border-bottom:1px solid #e1e7e2;color:#6b7a73;\">Confianza</td>\n                <td style=\"padding:8px 0;border-bottom:1px solid #e1e7e2;\">{{ Math.round($json.data.confianza * 100) }}%</td>\n              </tr>\n              <tr>\n                <td style=\"padding:8px 0;border-bottom:1px solid #e1e7e2;color:#6b7a73;\">Detectado</td>\n                <td style=\"padding:8px 0;border-bottom:1px solid #e1e7e2;\">{{ $now.setZone('America/Argentina/Buenos_Aires').toFormat('dd/LL/yyyy HH:mm') }} hs</td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n\n        <!-- Correo original -->\n        <tr>\n          <td style=\"padding:20px 28px 4px 28px;font-size:12px;font-weight:bold;letter-spacing:0.06em;text-transform:uppercase;color:#6b7a73;\">\n            Correo original\n          </td>\n        </tr>\n        <tr>\n          <td style=\"padding:6px 28px 24px 28px;\">\n            <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#f4f7f4;border-left:3px solid #0e6b5e;border-radius:0 6px 6px 0;\">\n              <tr>\n                <td style=\"padding:14px 16px;font-size:14px;color:#14201c;\">\n                  <div style=\"font-weight:bold;margin-bottom:6px;\">{{ $('Preparar payload · Otros1').first().json.subject }}</div>\n                  <div style=\"color:#3b4a44;white-space:pre-wrap;\">{{ $('Preparar payload · Otros1').first().json.body }}</div>\n                </td>\n              </tr>\n            </table>\n          </td>\n        </tr>\n\n        <!-- Pie -->\n        <tr>\n          <td style=\"background:#f4f7f4;padding:14px 28px;font-size:11px;color:#84968d;\">\n            Generado automáticamente por el sistema de agentes de Neblina Forest. No responder a este mensaje.\n          </td>\n        </tr>\n\n      </table>\n    </td>\n  </tr>\n</table>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        8128,
+        1488
+      ],
+      "id": "59fc325e-ede2-43e8-ba74-05d28ea74fe0",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "9EYEomyTNUKII5wW",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/9EYEomyTNUKII5wW",
+          "cachedResultName": "CH - Worker · Clasificador de Compra"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "subject": "={{ $('Preparar payload · Compra').first().json.subject }}",
+            "body": "={{ $('Preparar payload · Compra').first().json.body }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "deedcda6-60f6-4287-bb08-b492478d0e32",
+      "name": "Delegar a Worker Compra",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        8720,
+        1056
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.chatInput || $json.body || '' }}",
+        "options": {
+          "systemMessage": "ROL\nClasificas correos entrantes de Neblina Forest, agencia de turismo de observacion de aves. Tu unica tarea es clasificar: no redactas respuestas ni sugieres acciones.\n\nCATEGORIAS (taxonomia cerrada, exactamente 4)\n\nVUELOS - El remitente TRANSMITE datos de su propio itinerario aereo.\nRequiere al menos un dato concreto: numero de vuelo, aerolinea, codigo de aeropuerto, fecha u hora de vuelo, o codigo de reserva.\nNO es VUELOS si solo PREGUNTA sobre vuelos sin aportar datos propios.\n\nCOMPRA - El remitente busca contratar, cotizar, o simplemente conocer los tours de Neblina Forest, con intencion de decidir una compra NUEVA.\nAlcanza con intencion o interes real en los tours -- NO hace falta un anclaje concreto (pais, fecha, cantidad de personas o nombre de un tour). Un mensaje de interes general, sin ningun detalle, ya es COMPRA: el Worker especializado se encarga de pedir los datos que falten.\nNO es COMPRA si el remitente YA TIENE una reserva y reporta un problema, un reclamo, o una dificultad -- por ejemplo, un pago que no se puede procesar, un error en la pasarela de pago, una reserva que no se confirma, o una queja sobre el servicio. Eso es OTROS, aunque el texto mencione las palabras reserva, pago o tour. La pregunta clave para decidir: el remitente quiere decidir algo NUEVO (COMPRA), o tiene un PROBLEMA con algo que ya existe (OTROS)?\nNO es COMPRA si el mensaje no expresa ningun interes en tours, o si la unica intencion identificable es otra (por ejemplo, un reclamo o una consulta administrativa).\n\nOTROS - Tema claramente ajeno a los dos anteriores e identificable con certeza: proveedores, facturacion a terceros, reclamos, problemas con pagos o reservas ya existentes, prensa, instituciones, administrativo.\nNO es OTROS si dudas entre esta y otra categoria.\n\nREVISION - Via de escape hacia un humano. Usala SIEMPRE que se cumpla cualquiera de estas condiciones:\na) Hay evidencia plausible de dos o mas categorias (por ejemplo VUELOS y COMPRA a la vez) y ninguna domina claramente.\nb) El remitente declara estar perdido o confundido sobre a quien escribirle o que hace esta agencia, sin ningun interes identificable en vuelos, tours u otro tema de negocio.\nc) El mensaje mezcla informacion contradictoria o ininteligible que un humano tendria que aclarar antes de poder actuar.\nd) El mensaje es demasiado corto o vago para decidir cualquier categoria, incluso OTROS.\n\nPROCEDIMIENTO OBLIGATORIO\n1. Evalua PRIMERO las condiciones a) a d) de REVISION. Si alguna se cumple, la categoria es REVISION y no evalues nada mas.\n2. Si ninguna se cumple, evalua en este orden: VUELOS, luego COMPRA, luego OTROS.\n\nCALIBRACION DE CONFIANZA\n0.90-1.00: evidencia explicita e inequivoca de una sola categoria.\n0.75-0.89: evidencia clara aunque no textual.\n0.50-0.74: interpretaste intencion sin evidencia directa.\nMenor a 0.50: estas adivinando.\nUn mensaje de interes general en los tours, aunque no tenga pais, fecha ni cantidad de personas, es COMPRA con confianza alta (0.85 o mas) -- es el caso esperado del negocio, no una adivinanza.\nNo infles la confianza fuera de este caso. Ante la minima duda real, baja el numero y usa REVISION.\n\nSALIDA\nDevolve UNICAMENTE un objeto JSON con estas 4 claves, sin markdown y sin texto adicional:\ncategoria: uno de VUELOS, COMPRA, OTROS, REVISION\nconfianza: numero entre 0 y 1\nasunto: frase corta que resuma el mensaje\nremitente: nombre o correo si aparece en el texto, si no null"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        6640,
+        1264
+      ],
+      "id": "002a3c91-a2b4-45c6-9689-efd72c8be359",
+      "name": "Clasificar intención (AI Agent)"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1000000-0000-4000-8000-000000000501",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.asunto }}"
+            },
+            {
+              "id": "e1000000-0000-4000-8000-000000000502",
+              "name": "body",
+              "type": "string",
+              "value": "={{ $json.body }}"
+            },
+            {
+              "id": "1d9082fc-85c8-4683-8b87-31f246391b62",
+              "name": "email",
+              "value": "={{ $json.remitente }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "984b14eb-0433-4d7e-9cd1-aeb68ea0d0ab",
+      "name": "Preparar payload · Compra",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7536,
+        1184
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "=Log Neblina Forest · Tour personalizado registrado",
+        "message": "={{ ($('Delegar a Worker Compra').first().json.data.tipo === 'personalizado' ? 'Se registró una solicitud de tour personalizado.' : 'Se envió una oferta de tours armados (borrador creado en Gmail y equipo avisado por Slack).') + '\\nCliente: ' + ($('④ Validar contacto para CRM').first().json.nombre || $('④ Validar contacto para CRM').first().json.email) + '\\nAsunto original: ' + $('Preparar payload · Compra').first().json.subject + '\\nMensaje: ' + $('Preparar payload · Compra').first().json.body }}",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        10304,
+        1040
+      ],
+      "id": "cd7ddd0e-a347-42cf-bbed-74bb901adf0c",
+      "name": "Registrar en log · Compras",
+      "webhookId": "943af268-a8d0-43cf-8d1c-7b39faddbb34",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "Tour personalizado",
+        "message": "Se registro un tour personalizado",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        9184,
+        1040
+      ],
+      "id": "a6bba232-87d2-4309-824b-c186672c0a3d",
+      "name": "Send a message",
+      "webhookId": "62cc4302-3c70-49ed-88ea-88c5b23a721d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "29afc7cf-18e2-4371-8d73-40a1efc84446",
+              "leftValue": "={{ $json.data.tipo }}",
+              "rightValue": "personalizado",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        8896,
+        1056
+      ],
+      "id": "946d344f-8436-4ea5-82f5-b152d5cdd695",
+      "name": "Tour personalizado"
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "={{ '⚠️ Correo importante · ' + $json.data.categoria + ' · Neblina Forest' }}",
+        "message": "={{ $json.html }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        8320,
+        1488
+      ],
+      "id": "939874cc-f00e-4db8-b497-d506465a534a",
+      "name": "Aviso a asesor",
+      "webhookId": "49167dd5-baa6-4b0e-b957-5d7337c3e66b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "phHoyPW4TnimrMbz",
+          "name": "Gmail NEBLINA"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "Revisión humana",
+        "message": "={{ $('Parsear clasificación1').item.json.asunto }}\n\n{{ $('Parsear clasificación1').item.json.body }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        7120,
+        1680
+      ],
+      "id": "984cfd17-548e-4e5e-b11d-50f9de2a0653",
+      "name": "Escala a revisión humana",
+      "webhookId": "8ef628a7-4423-405a-84b5-dad0979b2f8d",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e1000000-0000-4000-8000-000000000501",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.asunto }}"
+            },
+            {
+              "id": "e1000000-0000-4000-8000-000000000502",
+              "name": "body",
+              "type": "string",
+              "value": "={{ $json.body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f2651990-65a1-4a7d-906e-c6c4a2a8c265",
+      "name": "Preparar payload · Vuelos",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        7552,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "8rMSdllMKhKnTL8j",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/8rMSdllMKhKnTL8j",
+          "cachedResultName": "CH - Worker de Vuelos"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "subject": "={{ $json.subject }}",
+            "body": "={{ $json.body }}",
+            "email": "={{ $('Parsear clasificación1').item.json.remitente }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "body",
+              "displayName": "body",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "1188318e-8a4a-4e87-ab14-418f019a0bb8",
+      "name": "Delegar a Worker vuelos",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        7792,
+        736
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "={{ 'Log Neblina Forest · ' + $json.meta.worker + ' · ' + $json.status }}",
+        "message": "={{ 'Worker invocado: ' + $json.meta.worker + '\\nParametros enviados: ' + JSON.stringify($('Preparar payload · Vuelos').first().json) + '\\nEstado: ' + $json.status + '\\nRespuesta: ' + JSON.stringify($json.data) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        8032,
+        736
+      ],
+      "id": "935c02b1-2b66-4bb2-9a2b-b76252b8b1c0",
+      "name": "Registrar en log · Vuelos",
+      "webhookId": "e5f6a1b2-0000-4000-8000-000000000002",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "<!DOCTYPE html>\n<html lang=\"es\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Tours Neblina Forest</title>\n</head>\n<body style=\"margin:0; padding:0; background-color:#f4f6f5; font-family: Arial, Helvetica, sans-serif;\">\n\n  <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f4f6f5; padding:30px 10px;\">\n    <tr>\n      <td align=\"center\">\n\n        <table role=\"presentation\" width=\"640\" cellpadding=\"0\" cellspacing=\"0\" style=\"width:640px; max-width:640px; background-color:#ffffff; border-radius:12px; overflow:hidden; box-shadow:0 4px 20px rgba(0,0,0,0.08);\">\n\n          <!-- Encabezado -->\n          <tr>\n            <td style=\"background-color:#0d3b30; padding:28px 32px;\">\n              <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\">\n                <tr>\n                  <td width=\"60\" valign=\"middle\" style=\"padding-right:16px;\">\n                    <img src=\"https://drive.google.com/thumbnail?id=1tFcznyvzCxm179s-y0n3Avdn-O-5XSQM&sz=w200\" alt=\"Neblina Forest\" width=\"52\" style=\"display:block; border-radius:6px;\" />\n                  </td>\n                  <td valign=\"middle\" align=\"left\">\n                    <p style=\"margin:0; font-size:12px; letter-spacing:2px; color:#a8d5c5; text-transform:uppercase;\">Neblina Forest</p>\n                    <h1 style=\"margin:6px 0 0 0; font-size:22px; color:#ffffff; font-weight:bold;\">{{ $json.pais_solicitado ? 'Tours en ' + $json.pais_solicitado : 'Nuestro catálogo de tours' }}</h1>\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Cuerpo -->\n          <tr>\n            <td style=\"padding:32px 32px 8px 32px;\">\n              <p style=\"margin:0 0 16px 0; font-size:16px; color:#1f2d27;\">\n                Hola <strong>{{ $('④ Validar contacto para CRM').first().json.nombre || 'viajero/a' }}</strong>,\n              </p>\n              <p style=\"margin:0 0 24px 0; font-size:15px; line-height:1.6; color:#4a5a53;\">\n                {{ $json.pais_solicitado ? ('Te compartimos los tours armados que tenemos disponibles para ' + $json.pais_solicitado + ':') : 'Todavía no nos dijiste un destino puntual, así que te compartimos todo nuestro catálogo de tours armados para que elijas el que más te guste:' }}\n              </p>\n            </td>\n          </tr>\n\n          <!-- Tabla dinamica: crece o se achica sola segun cuantos tours haya -->\n          <tr>\n            <td style=\"padding:0 32px 24px 32px;\">\n              <div style=\"overflow-x:auto; border:1px solid #e1e7e2; border-radius:8px;\">\n                <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"min-width:560px; border-collapse:collapse; font-size:13px;\">\n                  <thead>\n                    <tr style=\"background-color:#0d3b30;\">\n                      <th style=\"padding:10px 12px; text-align:left; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;\">País</th>\n                      <th style=\"padding:10px 12px; text-align:left; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;\">Tour</th>\n                      <th style=\"padding:10px 12px; text-align:left; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;\">Salida</th>\n                      <th style=\"padding:10px 12px; text-align:left; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;\">Duración</th>\n                      <th style=\"padding:10px 12px; text-align:right; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;\">Costo</th>\n                      <th style=\"padding:10px 12px; text-align:right; color:#ffffff; font-size:12px; text-transform:uppercase; letter-spacing:0.04em;\">Cupos</th>\n                    </tr>\n                  </thead>\n                  <tbody>\n                    {{ $json.tours.map((t, i) => `<tr style=\"background-color:${i % 2 === 0 ? '#ffffff' : '#f4f7f4'};\"><td style=\"padding:10px 12px; border-bottom:1px solid #e1e7e2; color:#1f2d27;\">${t.pais}</td><td style=\"padding:10px 12px; border-bottom:1px solid #e1e7e2; color:#1f2d27;\"><strong>${t.nombre_tour}</strong><br><span style=\"color:#6b7a73; font-size:12px;\">${t.descripcion}</span></td><td style=\"padding:10px 12px; border-bottom:1px solid #e1e7e2; color:#1f2d27; white-space:nowrap;\">${t.fecha_salida}</td><td style=\"padding:10px 12px; border-bottom:1px solid #e1e7e2; color:#1f2d27; white-space:nowrap;\">${t.duracion_dias} días</td><td style=\"padding:10px 12px; border-bottom:1px solid #e1e7e2; color:#0a544a; font-weight:bold; text-align:right; white-space:nowrap;\">USD ${t.costo_usd}</td><td style=\"padding:10px 12px; border-bottom:1px solid #e1e7e2; color:#1f2d27; text-align:right;\">${t.cupos_disponibles}</td></tr>`).join('') }}\n                  </tbody>\n                </table>\n              </div>\n            </td>\n          </tr>\n\n          <!-- Nota final -->\n          <tr>\n            <td style=\"padding:0 32px 32px 32px;\">\n              <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#eaf5ef; border-left:4px solid #0d3b30; border-radius:8px;\">\n                <tr>\n                  <td style=\"padding:16px 18px; font-size:13px; color:#0d3b30;\">\n                    Si alguno de estos tours te interesa, respondé este correo y un asesor te va a contactar para coordinar los detalles.\n                  </td>\n                </tr>\n              </table>\n            </td>\n          </tr>\n\n          <!-- Pie -->\n          <tr>\n            <td style=\"background-color:#f4f6f5; padding:20px 32px; text-align:center; border-top:1px solid #e5e9e7;\">\n              <p style=\"margin:0; font-size:12px; color:#8a9691;\">© Neblina Forest — Equipo de Reservas</p>\n            </td>\n          </tr>\n\n        </table>\n      </td>\n    </tr>\n  </table>\n</body>\n</html>"
+      },
+      "id": "c273f32e-9f4b-48be-8684-3246eda84265",
+      "name": "Correo Karen",
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        9488,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "search",
+        "filterGroupsUi": {
+          "filterGroupsValues": [
+            {
+              "filtersUi": {
+                "filterValues": [
+                  {
+                    "propertyName": "email|string",
+                    "value": "={{ $json.email }}"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.hubspot",
+      "typeVersion": 2.2,
+      "alwaysOutputData": true,
+      "position": [
+        8064,
+        976
+      ],
+      "id": "f9ebdfbd-792d-41e0-8bac-6ef7f782bcc5",
+      "name": "Search contacts1",
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "QXSSyjw1CvlvTrpI",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8715356d-d178-4d8e-a6be-bd6e9d5597dc",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        8256,
+        976
+      ],
+      "id": "ccfe4c92-5214-42e2-a9c7-2bb1f4c14547",
+      "name": "Contacto existe?1"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1JTmGGUNc1j61yZtgsTZViCQ99B6G6d907Uu_LqCzK5U"
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "id",
+          "value": "0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {}
+      },
+      "id": "900f6f94-90a5-415e-85e6-b3a7cadd92e3",
+      "name": "Leer catálogo de tours",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        9072,
+        1280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "hgUPv7pNfp2C4Sd3",
+          "name": "velasquez sheets"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const paises = $('Delegar a Worker Compra').first().json.data.paises_mencionados || [];\nconst catalogo = $('Leer catálogo de tours').all().map(item => item.json);\n\n// Normaliza texto para comparar tolerando acentos y mayusculas/minusculas\nfunction normalizar(texto) {\n  return (texto || '')\n    .toString()\n    .normalize('NFD')\n    .replace(/[\\u0300-\\u036f]/g, '')\n    .toLowerCase()\n    .trim();\n}\n\n// Equivalencias entre nombres de pais en distintos idiomas -- sumar mas si hace falta\nconst equivalencias = {\n  'brasil': 'brazil'\n};\n\nfunction paisNormalizado(pais) {\n  const n = normalizar(pais);\n  return equivalencias[n] || n;\n}\n\nlet toursFiltrados;\nif (!paises || paises.length === 0) {\n  // Sin pais mencionado -> se devuelven todos los tours del catalogo\n  toursFiltrados = catalogo;\n} else {\n  const paisesPedidos = paises.map(paisNormalizado);\n  toursFiltrados = catalogo.filter(tour => paisesPedidos.includes(paisNormalizado(tour['Pais'])));\n}\n\nreturn [{\n  json: {\n    pais_solicitado: (paises && paises.length > 0) ? paises.join(', ') : null,\n    tours: toursFiltrados.map(t => ({\n      pais: t['Pais'],\n      nombre_tour: t['Nombre del Tour'],\n      fecha_salida: t['Fecha de Salida'],\n      duracion_dias: t['Duracion (dias)'],\n      costo_usd: t['Costo (USD)'],\n      cupos_disponibles: t['Cupos Disponibles'],\n      descripcion: t['Descripcion breve']\n    }))\n  }\n}];"
+      },
+      "id": "8f91161e-e09e-4b95-b443-a619a115ab9c",
+      "name": "Filtrar tours por país",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        9280,
+        1280
+      ]
+    },
+    {
+      "parameters": {
+        "content": "SECCIÓN CONSIGNA 4\n",
+        "height": 384,
+        "width": 1488,
+        "color": 3
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        9040,
+        1232
+      ],
+      "id": "4e0518ba-b72d-4cac-97f6-c4401982ca14",
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        6640,
+        1472
+      ],
+      "id": "f9cb6afa-3240-4f67-86f3-b28206370cd6",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vooM42BDEHxtgqxh",
+          "name": "Google Gemini CODERHOUSE"
+        }
+      }
+    }
+  ],
+  "pinData": {
+    "Trigger: Email entrante1": [
+      {
+        "json": {
+          "id": "1a0744d05d86f6f7",
+          "threadId": "1a0744caf294d452",
+          "snippet": "Hola estoy interesado por los Tours de armados de Uganda, la verdad no tengo fechas exactas para realizar mi viaje, por lo que quiero que me comenten que tours tienen armados. Saludos",
+          "payload": {
+            "mimeType": "multipart/alternative"
+          },
+          "sizeEstimate": 1001,
+          "historyId": "742095",
+          "internalDate": "1788657600000",
+          "labels": [
+            {
+              "id": "SENT",
+              "name": "SENT"
+            },
+            {
+              "id": "INBOX",
+              "name": "INBOX"
+            },
+            {
+              "id": "IMPORTANT",
+              "name": "IMPORTANT"
+            },
+            {
+              "id": "UNREAD",
+              "name": "UNREAD"
+            }
+          ],
+          "Subject": "Consulta por tour armados",
+          "From": "RICHARD ERWIN VELASQUEZ GARCIA <velasquez46841@estudiantes.untref.edu.ar>",
+          "To": "RICHARD ERWIN VELASQUEZ GARCIA <velasquez46841@estudiantes.untref.edu.ar>"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "connections": {
+    "④ Validar contacto para CRM": {
+      "main": [
+        [
+          {
+            "node": "¿Email válido?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Email válido?": {
+      "main": [
+        [
+          {
+            "node": "Search contacts1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Sin email, se omite CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sin email, se omite CRM": {
+      "main": [
+        [
+          {
+            "node": "Delegar a Worker Compra",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "③ Gmail: Create Draft": {
+      "main": [
+        [
+          {
+            "node": "④ Limpiar payload para Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "④ Limpiar payload para Slack": {
+      "main": [
+        [
+          {
+            "node": "Avisar al equipo (Slack)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update contact (existe)": {
+      "main": [
+        [
+          {
+            "node": "Delegar a Worker Compra",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create contact (nuevo)": {
+      "main": [
+        [
+          {
+            "node": "Delegar a Worker Compra",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger: Email entrante1": {
+      "main": [
+        [
+          {
+            "node": "¿Es auto-reply?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Es auto-reply?1": {
+      "main": [
+        [
+          {
+            "node": "Descartar auto-reply (corta el bucle)1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar email entrante1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar email entrante1": {
+      "main": [
+        [
+          {
+            "node": "Clasificar intención (AI Agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parsear clasificación1": {
+      "main": [
+        [
+          {
+            "node": "Enrutar por categoría1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutar por categoría1": {
+      "main": [
+        [
+          {
+            "node": "Preparar payload · Vuelos",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar payload · Compra",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar payload · Otros1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Escala a revisión humana",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar payload · Otros1": {
+      "main": [
+        [
+          {
+            "node": "Delegar a Worker Otros1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delegar a Worker Otros1": {
+      "main": [
+        [
+          {
+            "node": "¿Importancia alta?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Importancia alta?1": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Baja prioridad: sin aviso1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Baja prioridad: sin aviso1": {
+      "main": [
+        [
+          {
+            "node": "Registrar en log · Otros1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "Aviso a asesor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delegar a Worker Compra": {
+      "main": [
+        [
+          {
+            "node": "Tour personalizado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar intención (AI Agent)": {
+      "main": [
+        [
+          {
+            "node": "Parsear clasificación1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar payload · Compra": {
+      "main": [
+        [
+          {
+            "node": "④ Validar contacto para CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        [
+          {
+            "node": "Registrar en log · Compras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tour personalizado": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Leer catálogo de tours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aviso a asesor": {
+      "main": [
+        [
+          {
+            "node": "Registrar en log · Otros1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar payload · Vuelos": {
+      "main": [
+        [
+          {
+            "node": "Delegar a Worker vuelos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Delegar a Worker vuelos": {
+      "main": [
+        [
+          {
+            "node": "Registrar en log · Vuelos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Correo Karen": {
+      "main": [
+        [
+          {
+            "node": "③ Gmail: Create Draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search contacts1": {
+      "main": [
+        [
+          {
+            "node": "Contacto existe?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contacto existe?1": {
+      "main": [
+        [
+          {
+            "node": "Update contact (existe)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create contact (nuevo)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Avisar al equipo (Slack)": {
+      "main": [
+        [
+          {
+            "node": "Registrar en log · Compras",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer catálogo de tours": {
+      "main": [
+        [
+          {
+            "node": "Filtrar tours por país",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filtrar tours por país": {
+      "main": [
+        [
+          {
+            "node": "Correo Karen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Clasificar intención (AI Agent)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "f3597790-af93-4390-9f2e-786e62ca3a9b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "ieMH8XuVtfO6fQK0",
+  "tags": []
+}

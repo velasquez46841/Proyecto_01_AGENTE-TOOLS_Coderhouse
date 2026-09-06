@@ -1,0 +1,536 @@
+{
+  "name": "CH - Tool Buscar Cliente",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "consulta"
+            }
+          ]
+        }
+      },
+      "id": "64a3af43-3055-4c0e-b225-f84c1b4e9fb7",
+      "name": "Trigger: recibir tarea",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -704,
+        464
+      ]
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKMUlG9UzdjTlrv",
+          "mode": "list",
+          "cachedResultName": "Clientes",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblKMUlG9UzdjTlrv"
+        },
+        "filterByFormula": "={{ '=OR({Cliente_ID} = \"' + $json.consulta + '\", {Email} = \"' + $json.consulta + '\", SEARCH(LOWER(\"' + $json.consulta + '\"), LOWER({Nombre completo})) > 0)' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -480,
+        464
+      ],
+      "id": "7f45d3a6-3465-43a8-a1d7-b2a0d254b149",
+      "name": "Buscar cliente",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nif (!item.id) {\n  return [{ json: { encontrado: false } }];\n}\nconst f = item.fields || {};\nreturn [{\n  json: {\n    encontrado: true,\n    cliente: f,\n    ids: {\n      Datos_personales: (f.Datos_personales || [])[0] || null,\n      Pasaporte: (f.Pasaporte || [])[0] || null,\n      Alojamiento: (f.Alojamiento || [])[0] || null,\n      Salud_y_Dieta: (f.Salud_y_Dieta || [])[0] || null,\n      Intereses: (f.Intereses || [])[0] || null,\n      Ventas: f.Ventas || [],\n      Vuelos: f.Vuelos || []\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -256,
+        464
+      ],
+      "id": "dffaa9f9-e59f-489d-b974-5d75747212e4",
+      "name": "Extraer datos y vinculos"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d1b30001-0000-4000-8000-000000000005",
+              "leftValue": "={{ $json.encontrado }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -32,
+        464
+      ],
+      "id": "a06d74a2-a2ab-4118-82d1-8d307a56cec9",
+      "name": "¿Cliente encontrado?"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { resultado: 'No se encontro ningun cliente que coincida con esa busqueda. Verificar el Cliente_ID, email o nombre e intentar de nuevo.' } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        192,
+        592
+      ],
+      "id": "65af22a5-0341-4681-ab8a-564485887203",
+      "name": "Cliente no encontrado"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblRcRZOyLl7tHA29",
+          "mode": "list",
+          "cachedResultName": "Datos_personales",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblRcRZOyLl7tHA29"
+        },
+        "filterByFormula": "={{ '=RECORD_ID()=\"' + ($('Extraer datos y vinculos').first().json.ids.Datos_personales || '__none__') + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        192,
+        368
+      ],
+      "id": "40a0677b-23c3-4a0d-a416-98ce097857a0",
+      "name": "Buscar Datos personales",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblshis9pD72YtFVg",
+          "mode": "list",
+          "cachedResultName": "Pasaporte",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblshis9pD72YtFVg"
+        },
+        "filterByFormula": "={{ '=RECORD_ID()=\"' + ($('Extraer datos y vinculos').first().json.ids.Pasaporte || '__none__') + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        416,
+        368
+      ],
+      "id": "04be99aa-7739-49c4-956f-f8e12264b00f",
+      "name": "Buscar Pasaporte",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblzrcVOYUVfgJWSc",
+          "mode": "list",
+          "cachedResultName": "Alojamiento",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblzrcVOYUVfgJWSc"
+        },
+        "filterByFormula": "={{ '=RECORD_ID()=\"' + ($('Extraer datos y vinculos').first().json.ids.Alojamiento || '__none__') + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        368
+      ],
+      "id": "d3244a41-4d2b-403b-81c2-2922f0740eb2",
+      "name": "Buscar Alojamiento",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbll3izHOzD27LlZw",
+          "mode": "list",
+          "cachedResultName": "Salud_y_Dieta",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tbll3izHOzD27LlZw"
+        },
+        "filterByFormula": "={{ '=RECORD_ID()=\"' + ($('Extraer datos y vinculos').first().json.ids.Salud_y_Dieta || '__none__') + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        864,
+        368
+      ],
+      "id": "f3fc25bf-42da-4777-a68e-7a934c525797",
+      "name": "Buscar Salud y Dieta",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblHcTS8AGbufgSQn",
+          "mode": "list",
+          "cachedResultName": "Intereses",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblHcTS8AGbufgSQn"
+        },
+        "filterByFormula": "={{ '=RECORD_ID()=\"' + ($('Extraer datos y vinculos').first().json.ids.Intereses || '__none__') + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1088,
+        368
+      ],
+      "id": "6bf96fd4-fe42-4291-b962-8b06ae146b39",
+      "name": "Buscar Intereses",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSBQm74nZXe0fAK",
+          "mode": "list",
+          "cachedResultName": "Ventas",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblSBQm74nZXe0fAK"
+        },
+        "filterByFormula": "={{ ($('Extraer datos y vinculos').first().json.ids.Ventas && $('Extraer datos y vinculos').first().json.ids.Ventas.length) ? ('=OR(' + $('Extraer datos y vinculos').first().json.ids.Ventas.map(id => 'RECORD_ID()=\"' + id + '\"').join(',') + ')') : '=RECORD_ID()=\"__none__\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1312,
+        368
+      ],
+      "id": "ea1147a0-f651-4a2c-b9bf-2cfc727898b5",
+      "name": "Buscar Ventas",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl8JJJdElcoaLak9",
+          "mode": "list",
+          "cachedResultName": "Vuelos",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tbl8JJJdElcoaLak9"
+        },
+        "filterByFormula": "={{ ($('Extraer datos y vinculos').first().json.ids.Vuelos && $('Extraer datos y vinculos').first().json.ids.Vuelos.length) ? ('=OR(' + $('Extraer datos y vinculos').first().json.ids.Vuelos.map(id => 'RECORD_ID()=\"' + id + '\"').join(',') + ')') : '=RECORD_ID()=\"__none__\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1536,
+        368
+      ],
+      "id": "96659e34-5208-4679-9e18-9d8deeaa91a2",
+      "name": "Buscar Vuelos",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const base = $('Extraer datos y vinculos').first().json;\nconst cliente = base.cliente;\n\nconst datosPersonales = $('Buscar Datos personales').first().json.fields || null;\nconst pasaporte = $('Buscar Pasaporte').first().json.fields || null;\nconst alojamiento = $('Buscar Alojamiento').first().json.fields || null;\nconst saludYDieta = $('Buscar Salud y Dieta').first().json.fields || null;\nconst intereses = $('Buscar Intereses').first().json.fields || null;\nconst ventas = $('Buscar Ventas').all().filter(i => i.json && i.json.fields).map(i => i.json.fields);\nconst vuelos = $('Buscar Vuelos').all().filter(i => i.json && i.json.fields).map(i => i.json.fields);\n\nconst resultado = {\n  Cliente: cliente,\n  Datos_personales: datosPersonales,\n  Pasaporte: pasaporte,\n  Alojamiento: alojamiento,\n  Salud_y_Dieta: saludYDieta,\n  Intereses: intereses,\n  Ventas: ventas,\n  Vuelos: vuelos\n};\n\nreturn [{ json: { resultado: JSON.stringify(resultado) } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1760,
+        368
+      ],
+      "id": "3a9e498f-453b-4aca-a902-a1c263fd9b44",
+      "name": "Combinar resultado completo"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger: recibir tarea": {
+      "main": [
+        [
+          {
+            "node": "Buscar cliente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar cliente": {
+      "main": [
+        [
+          {
+            "node": "Extraer datos y vinculos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extraer datos y vinculos": {
+      "main": [
+        [
+          {
+            "node": "¿Cliente encontrado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Cliente encontrado?": {
+      "main": [
+        [
+          {
+            "node": "Buscar Datos personales",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cliente no encontrado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Datos personales": {
+      "main": [
+        [
+          {
+            "node": "Buscar Pasaporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Pasaporte": {
+      "main": [
+        [
+          {
+            "node": "Buscar Alojamiento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Alojamiento": {
+      "main": [
+        [
+          {
+            "node": "Buscar Salud y Dieta",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Salud y Dieta": {
+      "main": [
+        [
+          {
+            "node": "Buscar Intereses",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Intereses": {
+      "main": [
+        [
+          {
+            "node": "Buscar Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Ventas": {
+      "main": [
+        [
+          {
+            "node": "Buscar Vuelos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Vuelos": {
+      "main": [
+        [
+          {
+            "node": "Combinar resultado completo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "73b07a2a-b86f-46bc-a275-b2c59685a581",
+  "meta": {
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "pHDHGsg3rRpn5WuM",
+  "tags": []
+}

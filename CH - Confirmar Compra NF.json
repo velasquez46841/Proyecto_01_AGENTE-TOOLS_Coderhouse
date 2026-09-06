@@ -1,0 +1,1828 @@
+{
+  "name": "CH - Confirmar Compra NF",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "2ba31aa0-8648-4325-b7a8-f97686d4f069",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1168,
+        16
+      ],
+      "id": "17433c01-8c1e-448f-b9f1-1fb6f7e5e2cb",
+      "name": "Webhook",
+      "webhookId": "2ba31aa0-8648-4325-b7a8-f97686d4f069"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKMUlG9UzdjTlrv",
+          "mode": "list",
+          "cachedResultName": "Clientes",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblKMUlG9UzdjTlrv"
+        },
+        "filterByFormula": "={{ '{Email} = \"' + $json.email + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -896,
+        16
+      ],
+      "id": "60e64f9f-c683-4f2d-bff6-4546219dabde",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSBQm74nZXe0fAK",
+          "mode": "list",
+          "cachedResultName": "Ventas",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblSBQm74nZXe0fAK"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Tour/Destino": "={{ $('Webhook').first().json.tour_destino }}",
+            "Tipo de tour": "={{ $('Webhook').first().json.tipo_tour }}",
+            "Fecha de compra": "={{ $now.toISODate() }}",
+            "Fecha de viaje": "={{ $('Webhook').first().json.fecha_viaje }}",
+            "Estado de la compra": "confirmada"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Compra_ID",
+              "displayName": "Compra_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nombre completo (from Cliente)",
+              "displayName": "Nombre completo (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Email (from Cliente)",
+              "displayName": "Email (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Nombre del viaje",
+              "displayName": "Nombre del viaje",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tipo de tour",
+              "displayName": "Tipo de tour",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "armado",
+                  "value": "armado"
+                },
+                {
+                  "name": "personalizado",
+                  "value": "personalizado"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tour/Destino",
+              "displayName": "Tour/Destino",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de compra",
+              "displayName": "Fecha de compra",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de viaje",
+              "displayName": "Fecha de viaje",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado de la compra",
+              "displayName": "Estado de la compra",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "confirmada",
+                  "value": "confirmada"
+                },
+                {
+                  "name": "cancelada",
+                  "value": "cancelada"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Codigo de reserva",
+              "displayName": "Codigo de reserva",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -448,
+        -80
+      ],
+      "id": "ed0db462-1df5-4e1b-a188-a5eaba7bea1b",
+      "name": "Create a record",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const webhookData = $('Webhook').first().json;\nconst clientId = 'NF-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).slice(2, 5).toUpperCase();\nreturn [{\n  json: {\n    ...webhookData,\n    client_id: clientId\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -448,
+        144
+      ],
+      "id": "77af634e-dd16-46cc-b544-0b9fc2d5d206",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKMUlG9UzdjTlrv",
+          "mode": "list",
+          "cachedResultName": "Clientes",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblKMUlG9UzdjTlrv"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente_ID": "={{ $json.client_id }}",
+            "Nombre completo": "={{ $json.nombre_completo }}",
+            "Email": "={{ $json.email }}",
+            "Fecha de alta": "={{ $now.toISODate() }}",
+            "Estado": "documentación pendiente",
+            "Resumen": "={{ 'Cliente nuevo. Primera compra: ' + $json.tour_destino }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Cliente_ID",
+              "displayName": "Cliente_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nombre completo",
+              "displayName": "Nombre completo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Telefono",
+              "displayName": "Telefono",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nacionalidad",
+              "displayName": "Nacionalidad",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de nacimiento",
+              "displayName": "Fecha de nacimiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de alta",
+              "displayName": "Fecha de alta",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen",
+              "displayName": "Resumen",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "documentación pendiente",
+                  "value": "documentación pendiente"
+                },
+                {
+                  "name": "completo",
+                  "value": "completo"
+                },
+                {
+                  "name": "en viaje",
+                  "value": "en viaje"
+                },
+                {
+                  "name": "finalizado",
+                  "value": "finalizado"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de actualización",
+              "displayName": "Fecha de actualización",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Ventas",
+              "displayName": "Ventas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Vuelos",
+              "displayName": "Vuelos",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Datos_personales",
+              "displayName": "Datos_personales",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pasaporte",
+              "displayName": "Pasaporte",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Alojamiento",
+              "displayName": "Alojamiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Salud_y_Dieta",
+              "displayName": "Salud_y_Dieta",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Intereses",
+              "displayName": "Intereses",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -224,
+        144
+      ],
+      "id": "71644e13-e00a-4963-9e4a-76495c073919",
+      "name": "Create a record1",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblSBQm74nZXe0fAK",
+          "mode": "list",
+          "cachedResultName": "Ventas",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblSBQm74nZXe0fAK"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Tour/Destino": "={{ $('Code in JavaScript').first().json.tour_destino }}",
+            "Tipo de tour": "={{ $('Code in JavaScript').first().json.tipo_tour }}",
+            "Fecha de compra": "={{ $now.toISODate() }}",
+            "Fecha de viaje": "={{ $('Code in JavaScript').first().json.fecha_viaje }}",
+            "Estado de la compra": "confirmada"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Compra_ID",
+              "displayName": "Compra_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nombre completo (from Cliente)",
+              "displayName": "Nombre completo (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Email (from Cliente)",
+              "displayName": "Email (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Nombre del viaje",
+              "displayName": "Nombre del viaje",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tipo de tour",
+              "displayName": "Tipo de tour",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "armado",
+                  "value": "armado"
+                },
+                {
+                  "name": "personalizado",
+                  "value": "personalizado"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tour/Destino",
+              "displayName": "Tour/Destino",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de compra",
+              "displayName": "Fecha de compra",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de viaje",
+              "displayName": "Fecha de viaje",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado de la compra",
+              "displayName": "Estado de la compra",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "confirmada",
+                  "value": "confirmada"
+                },
+                {
+                  "name": "cancelada",
+                  "value": "cancelada"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Codigo de reserva",
+              "displayName": "Codigo de reserva",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -16,
+        144
+      ],
+      "id": "4ed1e3c2-7beb-469c-a509-b2c5431e61b5",
+      "name": "Create a record2",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "text",
+        "responseBody": "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n<meta charset=\"UTF-8\">\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n<title>Neblina Forest — Guest Information Form</title>\n<style>\n  :root{\n    --canopy:#0d3b30;\n    --canopy-deep:#082720;\n    --mist:#f4f6f5;\n    --card:#ffffff;\n    --ink:#1f2d27;\n    --sage:#6b7873;\n    --sage-light:#a8bdb5;\n    --gold:#c9861a;\n    --line:#e5e9e7;\n    --chip-bg:#f7f9f8;\n  }\n\n  *{ box-sizing:border-box; }\n\n  body{\n    margin:0;\n    padding:0;\n    overflow-x:hidden;\n    background-color:var(--mist);\n    font-family: Arial, Helvetica, sans-serif;\n    color:var(--ink);\n    -webkit-font-smoothing:antialiased;\n  }\n\n  .page{\n    max-width:680px;\n    margin:0 auto;\n    padding:36px 20px 80px 20px;\n  }\n\n  /* ---------- HERO ---------- */\n  .hero{\n    background: linear-gradient(180deg, var(--canopy) 0%, var(--canopy-deep) 100%);\n    border-radius:20px 20px 0 0;\n    text-align:center;\n    position:relative;\n    overflow:hidden;\n    padding-bottom:56px;\n  }\n\n  .hero-inner{\n    padding:44px 36px 0 36px;\n  }\n\n  .hero-logo{\n    max-width:190px;\n    width:100%;\n    height:auto;\n    display:block;\n    margin:0 auto 22px auto;\n    animation: heroFadeUp .6s ease both;\n  }\n\n  .eyebrow{\n    margin:0 0 10px 0;\n    font-size:12.5px;\n    letter-spacing:3px;\n    color:var(--sage-light);\n    text-transform:uppercase;\n    animation: heroFadeUp .6s ease .08s both;\n  }\n\n  .hero h1{\n    font-family: Georgia, 'Times New Roman', serif;\n    font-style:italic;\n    font-weight:normal;\n    font-size:30px;\n    line-height:1.25;\n    color:#ffffff;\n    margin:0 0 16px 0;\n    letter-spacing:0.2px;\n    animation: heroFadeUp .6s ease .16s both;\n  }\n\n  .hero p{\n    max-width:480px;\n    margin:0 auto;\n    font-size:14.5px;\n    line-height:1.65;\n    color:#cfe0d8;\n    padding-bottom:38px;\n    animation: heroFadeUp .6s ease .24s both;\n  }\n\n  @keyframes heroFadeUp{\n    from{ opacity:0; transform:translateY(14px); }\n    to{ opacity:1; transform:translateY(0); }\n  }\n\n  /* canopy divider — full bleed + margen extra para que el drift no deje huecos */\n  .canopy-divider{\n    display:block;\n    position:absolute;\n    left:-24px;\n    right:-24px;\n    bottom:0;\n    width:calc(100% + 48px);\n    height:64px;\n  }\n\n  .mist-layer-1{ animation: mistDrift 7.3s ease-in-out infinite, mistBreathe 4.7s ease-in-out infinite; }\n  .mist-layer-2{ animation: mistDrift 5.3s ease-in-out infinite reverse, mistBreathe 6s ease-in-out infinite .5s; }\n  .mist-layer-3{ animation: mistDrift 9.3s ease-in-out infinite, mistBreathe 5.3s ease-in-out infinite 1s; }\n\n  @keyframes mistDrift{\n    0%, 100%{ transform:translateX(0); }\n    50%{ transform:translateX(10px); }\n  }\n\n  @keyframes mistBreathe{\n    0%, 100%{ opacity:var(--base-opacity, 1); }\n    50%{ opacity:calc(var(--base-opacity, 1) * 0.75); }\n  }\n\n  /* ---------- CARD / FORM ---------- */\n  .card{\n    background:var(--card);\n    border-radius:0 0 20px 20px;\n    box-shadow:0 10px 40px rgba(13,59,48,0.12);\n    padding:8px 36px 40px 36px;\n  }\n\n  form{ margin-top:8px; }\n\n  .section-title{\n    margin-top:38px;\n    padding-bottom:9px;\n    border-bottom:1.5px solid var(--line);\n    font-size:13px;\n    font-weight:bold;\n    letter-spacing:1.5px;\n    text-transform:uppercase;\n    color:var(--canopy);\n  }\n\n  .section-title:first-of-type{ margin-top:26px; }\n\n  .section-hint{\n    font-size:12.5px;\n    color:var(--sage-light);\n    margin:8px 0 0 0;\n    line-height:1.5;\n  }\n\n  .field{\n    margin-top:22px;\n  }\n\n  .row-2{\n    display:grid;\n    grid-template-columns:1fr 1fr;\n    gap:18px;\n  }\n\n  label.label{\n    display:block;\n    font-size:12.5px;\n    font-weight:bold;\n    letter-spacing:0.5px;\n    color:var(--sage);\n    text-transform:uppercase;\n    margin-bottom:8px;\n  }\n\n  label.label .req{\n    color:var(--gold);\n    margin-left:2px;\n  }\n\n  label.label .opt{\n    text-transform:none;\n    font-weight:normal;\n    color:var(--sage-light);\n    letter-spacing:0;\n  }\n\n  input[type=\"text\"],\n  input[type=\"email\"],\n  input[type=\"tel\"],\n  input[type=\"date\"],\n  select,\n  textarea{\n    width:100%;\n    font-family:Arial, Helvetica, sans-serif;\n    font-size:16px;\n    color:var(--ink);\n    background:var(--chip-bg);\n    border:1.5px solid var(--line);\n    border-radius:10px;\n    padding:13px 14px;\n    outline:none;\n    transition:border-color .15s ease, background .15s ease;\n    -webkit-appearance:none;\n    -moz-appearance:none;\n    appearance:none;\n  }\n\n  textarea{\n    resize:vertical;\n    min-height:80px;\n    line-height:1.5;\n  }\n\n  select{\n    background-image: url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='9'><path d='M1 1l6 6 6-6' stroke='%236b7873' stroke-width='1.6' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>\");\n    background-repeat:no-repeat;\n    background-position:right 16px center;\n    padding-right:38px;\n  }\n\n  input:focus, select:focus, textarea:focus{\n    border-color:var(--canopy);\n    background:#ffffff;\n    box-shadow:0 0 0 3px rgba(13,59,48,0.10);\n  }\n\n  .hint{\n    font-size:12px;\n    color:var(--sage-light);\n    margin-top:6px;\n  }\n\n  /* ---------- CHIP GROUPS (radio) ---------- */\n  .chip-group{\n    display:flex;\n    flex-wrap:wrap;\n    gap:10px;\n  }\n\n  .chip-group input[type=\"radio\"]{\n    position:absolute;\n    opacity:0;\n    width:0;\n    height:0;\n  }\n\n  .chip{\n    display:inline-flex;\n    align-items:center;\n    gap:7px;\n    padding:10px 16px;\n    border-radius:999px;\n    border:1.5px solid var(--line);\n    background:var(--chip-bg);\n    font-size:14px;\n    color:var(--ink);\n    cursor:pointer;\n    user-select:none;\n    transition: all .15s ease;\n  }\n\n  .chip:hover{ border-color:var(--sage-light); }\n  .chip:active{ transform:scale(0.96); }\n\n  input[type=\"radio\"]:checked + .chip{\n    background:var(--canopy);\n    border-color:var(--canopy);\n    color:#ffffff;\n  }\n\n  input[type=\"radio\"]:focus-visible + .chip{\n    box-shadow:0 0 0 3px rgba(13,59,48,0.25);\n  }\n\n  /* ---------- INTEREST RATING ROWS ---------- */\n  .interest-row{\n    display:flex;\n    align-items:center;\n    justify-content:space-between;\n    gap:14px;\n    padding:12px 0;\n    border-bottom:1px solid var(--line);\n  }\n\n  .interest-row:last-child{ border-bottom:none; }\n\n  .interest-row .interest-name{\n    font-size:14.5px;\n    color:var(--ink);\n  }\n\n  .interest-row select{\n    width:84px;\n    padding:9px 10px;\n    padding-right:30px;\n    font-size:14.5px;\n    flex-shrink:0;\n  }\n\n  /* ---------- SUBMIT ---------- */\n  .submit-wrap{\n    margin-top:34px;\n    text-align:center;\n  }\n\n  button.submit, a.submit{\n    appearance:none;\n    border:none;\n    cursor:pointer;\n    background:var(--canopy);\n    color:#ffffff;\n    font-family:Arial, Helvetica, sans-serif;\n    font-weight:bold;\n    font-size:15.5px;\n    padding:15px 40px;\n    border-radius:10px;\n    box-shadow:0 6px 18px rgba(13,59,48,0.30);\n    transition: transform .12s ease, box-shadow .12s ease, background .12s ease;\n  }\n\n  button.submit:hover, a.submit:hover{\n    background:var(--canopy-deep);\n    transform:translateY(-1px);\n    box-shadow:0 8px 22px rgba(13,59,48,0.36);\n  }\n\n  button.submit:active, a.submit:active{ transform:translateY(0) scale(0.97); }\n  button.submit:disabled{ opacity:0.6; cursor:not-allowed; transform:none; }\n  a.submit:visited{ color:#ffffff; }\n\n  .form-footnote{\n    text-align:center;\n    font-size:12.5px;\n    color:var(--sage-light);\n    margin-top:16px;\n    line-height:1.6;\n  }\n\n  /* ---------- SUCCESS STATE ---------- */\n  .success-box{\n    display:none;\n    text-align:center;\n    padding:20px 10px 6px 10px;\n  }\n\n  .success-badge{\n    width:56px;\n    height:56px;\n    border-radius:50%;\n    background:#eaf5ef;\n    border:2px solid var(--canopy);\n    display:flex;\n    align-items:center;\n    justify-content:center;\n    margin:0 auto 18px auto;\n    font-size:26px;\n    color:var(--canopy);\n    animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both;\n  }\n\n  @keyframes popIn{\n    0%{ opacity:0; transform:scale(0.6); }\n    60%{ opacity:1; transform:scale(1.12); }\n    100%{ opacity:1; transform:scale(1); }\n  }\n\n  .success-box h2{\n    font-family: Georgia, 'Times New Roman', serif;\n    font-style:italic;\n    font-weight:normal;\n    font-size:24px;\n    margin:0 0 10px 0;\n    color:var(--ink);\n  }\n\n  .success-box p{\n    font-size:14.5px;\n    line-height:1.6;\n    color:var(--sage);\n    max-width:400px;\n    margin:0 auto;\n  }\n\n  .error-box{\n    display:none;\n    margin-top:18px;\n    background:#fdeeee;\n    border-left:4px solid #c0392b;\n    border-radius:8px;\n    padding:14px 16px;\n    font-size:13.5px;\n    color:#8c2f24;\n  }\n\n  @keyframes shake{\n    0%, 100%{ transform:translateX(0); }\n    20%{ transform:translateX(-6px); }\n    40%{ transform:translateX(6px); }\n    60%{ transform:translateX(-5px); }\n    80%{ transform:translateX(5px); }\n  }\n\n  .field.shake{ animation: shake .4s ease; }\n\n  footer.site-footer{\n    text-align:center;\n    margin-top:26px;\n    font-size:12.5px;\n    color:var(--sage-light);\n  }\n\n  /* ---------- RESPONSIVE ---------- */\n  @media (max-width:480px){\n    .hero-inner{ padding:36px 22px 0 22px; }\n    .hero h1{ font-size:24px; }\n    .card{ padding:8px 22px 32px 22px; }\n    .row-2{ grid-template-columns:1fr; gap:0; }\n    .interest-row select{ width:76px; }\n  }\n\n  @media (max-width:360px){\n    .page{ padding:24px 12px 60px 12px; }\n    .hero-inner{ padding:32px 18px 0 18px; }\n    .card{ padding:8px 18px 28px 18px; }\n    .chip{ padding:9px 13px; font-size:13.5px; }\n    button.submit, a.submit{ width:100%; padding:15px 20px; }\n  }\n\n  /* ---------- REDUCED MOTION ---------- */\n  @media (prefers-reduced-motion: reduce){\n    .mist-layer-1, .mist-layer-2, .mist-layer-3,\n    .hero-logo, .eyebrow, .hero h1, .hero p,\n    .field.shake, .success-badge{\n      animation:none !important;\n    }\n    .chip, button.submit, a.submit{ transition:none !important; }\n  }\n</style>\n</head>\n<body>\n\n  <div class=\"page\">\n\n    <div class=\"hero\">\n      <div class=\"hero-inner\">\n        <img class=\"hero-logo\" src=\"https://drive.google.com/thumbnail?id=1-T7ihaGz5C3ZNngVgyvM3G1R7rPkuOBt&sz=w600\" alt=\"Neblina Forest\">\n        <p class=\"eyebrow\">Neblina Forest</p>\n        <h1>Guest Information Form</h1>\n        <p>To help us provide the best possible experience, please complete the form below with your trip and personal details. This information is for Neblina Forest use only and will not be shared with third parties.</p>\n      </div>\n\n      <svg class=\"canopy-divider\" viewBox=\"0 0 640 64\" preserveAspectRatio=\"none\" xmlns=\"http://www.w3.org/2000/svg\">\n        <path class=\"mist-layer-1\" style=\"--base-opacity:0.30\" d=\"M0,64 L0,34 C40,14 80,46 120,30 C160,14 200,40 240,26 C280,12 320,38 360,24 C400,10 440,36 480,26 C520,18 560,40 600,26 C620,20 630,24 640,30 L640,64 Z\" fill=\"#f4f6f5\" opacity=\"0.30\"/>\n        <path class=\"mist-layer-2\" style=\"--base-opacity:0.60\" d=\"M0,64 L0,42 C50,24 90,50 140,38 C190,26 230,48 280,36 C330,24 370,44 420,32 C470,20 510,46 560,36 C590,29 620,32 640,38 L640,64 Z\" fill=\"#f4f6f5\" opacity=\"0.60\"/>\n        <path class=\"mist-layer-3\" style=\"--base-opacity:1\" d=\"M0,64 L0,50 C60,36 110,54 170,44 C230,34 270,52 330,42 C390,32 430,50 490,42 C540,35 580,46 640,44 L640,64 Z\" fill=\"#f4f6f5\"/>\n      </svg>\n    </div>\n\n    <div class=\"card\">\n\n      <form id=\"guestForm\">\n\n        <!-- TRIP DETAILS -->\n        <p class=\"section-title\">Trip Details</p>\n\n        <div class=\"field\">\n          <label class=\"label\">Name of Trip</label>\n          <input type=\"text\" name=\"Nombre del viaje\">\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Country of Destination<span class=\"req\">*</span></label>\n          <input type=\"text\" name=\"Pais de destino\" required>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Dates of Trip<span class=\"req\">*</span></label>\n          <input type=\"text\" name=\"Fechas del viaje\" placeholder=\"e.g. 9 Sep 2027 – 19 Sep 2027\" required>\n        </div>\n\n        <!-- PARTICIPANT INFORMATION -->\n        <p class=\"section-title\">Participant Information</p>\n\n        <div class=\"row-2\">\n          <div class=\"field\">\n            <label class=\"label\">First Name<span class=\"req\">*</span></label>\n            <input type=\"text\" name=\"Nombre\" required autocomplete=\"given-name\">\n          </div>\n          <div class=\"field\">\n            <label class=\"label\">Last Name / Surname<span class=\"req\">*</span></label>\n            <input type=\"text\" name=\"Apellido\" required autocomplete=\"family-name\">\n          </div>\n        </div>\n\n        <div class=\"row-2\">\n          <div class=\"field\">\n            <label class=\"label\">Title</label>\n            <select name=\"Titulo\">\n              <option value=\"\" disabled selected>Choose an option</option>\n              <option value=\"Mr\">Mr</option>\n              <option value=\"Mrs\">Mrs</option>\n              <option value=\"Ms\">Ms</option>\n              <option value=\"Other\">Other</option>\n            </select>\n          </div>\n          <div class=\"field\">\n            <label class=\"label\">Full Name <span class=\"opt\">(as it appears on passport)</span><span class=\"req\">*</span></label>\n            <input type=\"text\" name=\"Nombre completo (como en el pasaporte)\" required>\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Preferred Name <span class=\"opt\">(name you wish to be known by on the trip)</span></label>\n          <input type=\"text\" name=\"Nombre preferido durante el viaje\">\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Home Address <span class=\"opt\">(including postcode)</span></label>\n          <textarea name=\"Direccion de domicilio\" rows=\"2\"></textarea>\n        </div>\n\n        <div class=\"row-2\">\n          <div class=\"field\">\n            <label class=\"label\">Country &amp; City</label>\n            <input type=\"text\" name=\"Pais y ciudad\">\n          </div>\n          <div class=\"field\">\n            <label class=\"label\">Postal Code</label>\n            <input type=\"text\" name=\"Codigo postal\">\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Mobile Phone<span class=\"req\">*</span></label>\n          <input type=\"tel\" name=\"Telefono movil\" required autocomplete=\"tel\">\n        </div>\n\n        <div class=\"row-2\">\n          <div class=\"field\">\n            <label class=\"label\">Email Address<span class=\"req\">*</span></label>\n            <input type=\"email\" name=\"Correo electronico\" required autocomplete=\"email\">\n          </div>\n          <div class=\"field\">\n            <label class=\"label\">Occupation</label>\n            <input type=\"text\" name=\"Ocupacion\">\n          </div>\n        </div>\n\n        <div class=\"row-2\">\n          <div class=\"field\">\n            <label class=\"label\">Nationality<span class=\"req\">*</span></label>\n            <input type=\"text\" name=\"Nacionalidad\" required>\n          </div>\n          <div class=\"field\">\n            <label class=\"label\">Date of Birth<span class=\"req\">*</span></label>\n            <input type=\"date\" name=\"Fecha de nacimiento\" required>\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Place of Birth</label>\n          <input type=\"text\" name=\"Lugar de nacimiento\">\n        </div>\n\n        <!-- PASSPORT INFORMATION -->\n        <p class=\"section-title\">Passport Information</p>\n\n        <div class=\"field\">\n          <label class=\"label\">Passport Number<span class=\"req\">*</span></label>\n          <input type=\"text\" name=\"Numero de pasaporte\" required>\n        </div>\n\n        <div class=\"row-2\">\n          <div class=\"field\">\n            <label class=\"label\">Date of Issue<span class=\"req\">*</span></label>\n            <input type=\"date\" name=\"Fecha de emision del pasaporte\" required>\n          </div>\n          <div class=\"field\">\n            <label class=\"label\">Date of Expiry<span class=\"req\">*</span></label>\n            <input type=\"date\" name=\"Fecha de vencimiento del pasaporte\" required>\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Place of Issue<span class=\"req\">*</span></label>\n          <input type=\"text\" name=\"Lugar de emision del pasaporte\" required>\n        </div>\n\n        <!-- ROOM & ACCOMMODATION -->\n        <p class=\"section-title\">Room &amp; Accommodation Preferences</p>\n\n        <div class=\"field\">\n          <label class=\"label\">Do you require a single tent? <span class=\"opt\">(treks only)</span></label>\n          <div class=\"chip-group\">\n            <input type=\"radio\" id=\"single-tent-yes\" name=\"Requiere carpa individual\" value=\"Si\"><label class=\"chip\" for=\"single-tent-yes\">Yes</label>\n            <input type=\"radio\" id=\"single-tent-no\" name=\"Requiere carpa individual\" value=\"No\"><label class=\"chip\" for=\"single-tent-no\">No</label>\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Do you prefer a double or twin room?</label>\n          <div class=\"chip-group\">\n            <input type=\"radio\" id=\"room-double\" name=\"Preferencia de habitacion\" value=\"Double\"><label class=\"chip\" for=\"room-double\">Double</label>\n            <input type=\"radio\" id=\"room-twin\" name=\"Preferencia de habitacion\" value=\"Twin\"><label class=\"chip\" for=\"room-twin\">Twin</label>\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Smoking or Non-Smoking Room?<span class=\"req\">*</span></label>\n          <div class=\"chip-group\">\n            <input type=\"radio\" id=\"smoking-yes\" name=\"Preferencia de fumador\" value=\"Smoking\" required><label class=\"chip\" for=\"smoking-yes\">Smoking</label>\n            <input type=\"radio\" id=\"smoking-no\" name=\"Preferencia de fumador\" value=\"Non-smoking\"><label class=\"chip\" for=\"smoking-no\">Non-smoking</label>\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Boots Size <span class=\"opt\">(for rubber boots)</span></label>\n          <input type=\"text\" name=\"Talla de botas de goma\">\n          <p class=\"hint\">If not specified, boots will be provided according to availability.</p>\n        </div>\n\n        <!-- HEALTH & DIETARY -->\n        <p class=\"section-title\">Health &amp; Dietary Information</p>\n\n        <div class=\"field\">\n          <label class=\"label\">Food Restrictions, Allergies, or Special Diet<span class=\"req\">*</span></label>\n          <textarea name=\"Restricciones alimenticias o dieta especial\" rows=\"2\" required></textarea>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Medical Restrictions or Allergies<span class=\"req\">*</span></label>\n          <textarea name=\"Restricciones medicas o alergias\" rows=\"2\" required></textarea>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Fear of Heights?</label>\n          <div class=\"chip-group\">\n            <input type=\"radio\" id=\"heights-yes\" name=\"Miedo a las alturas\" value=\"Si\"><label class=\"chip\" for=\"heights-yes\">Yes</label>\n            <input type=\"radio\" id=\"heights-no\" name=\"Miedo a las alturas\" value=\"No\"><label class=\"chip\" for=\"heights-no\">No</label>\n          </div>\n        </div>\n\n        <div class=\"field\">\n          <label class=\"label\">Special Requirements</label>\n          <textarea name=\"Requerimientos especiales\" rows=\"2\"></textarea>\n        </div>\n\n        <!-- EMERGENCY CONTACT -->\n        <p class=\"section-title\">Emergency Contact</p>\n\n        <div class=\"field\">\n          <label class=\"label\">Name, Address, and/or Phone Number of Emergency Contact <span class=\"opt\">(while you are abroad)</span><span class=\"req\">*</span></label>\n          <textarea name=\"Contacto de emergencia\" rows=\"2\" required></textarea>\n        </div>\n\n        <!-- INTERESTS -->\n        <p class=\"section-title\">Areas of Interest</p>\n        <p class=\"section-hint\">Please rate your interests using the scale 1–5 (5 = most interested, 1 = least interested).</p>\n\n        <div class=\"field\">\n          <div class=\"interest-row\">\n            <span class=\"interest-name\">Birds</span>\n            <select name=\"Interes en aves\">\n              <option value=\"\">–</option>\n              <option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option><option value=\"5\">5</option>\n            </select>\n          </div>\n          <div class=\"interest-row\">\n            <span class=\"interest-name\">Mammals</span>\n            <select name=\"Interes en mamiferos\">\n              <option value=\"\">–</option>\n              <option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option><option value=\"5\">5</option>\n            </select>\n          </div>\n          <div class=\"interest-row\">\n            <span class=\"interest-name\">Plants</span>\n            <select name=\"Interes en plantas\">\n              <option value=\"\">–</option>\n              <option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option><option value=\"5\">5</option>\n            </select>\n          </div>\n          <div class=\"interest-row\">\n            <span class=\"interest-name\">Insects</span>\n            <select name=\"Interes en insectos\">\n              <option value=\"\">–</option>\n              <option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option><option value=\"5\">5</option>\n            </select>\n          </div>\n          <div class=\"interest-row\">\n            <span class=\"interest-name\">Herpetology</span>\n            <select name=\"Interes en herpetologia\">\n              <option value=\"\">–</option>\n              <option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option><option value=\"5\">5</option>\n            </select>\n          </div>\n          <div class=\"interest-row\">\n            <span class=\"interest-name\">Photography</span>\n            <select name=\"Interes en fotografia\">\n              <option value=\"\">–</option>\n              <option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option><option value=\"5\">5</option>\n            </select>\n          </div>\n          <div class=\"interest-row\">\n            <span class=\"interest-name\">General</span>\n            <select name=\"Interes general\">\n              <option value=\"\">–</option>\n              <option value=\"1\">1</option><option value=\"2\">2</option><option value=\"3\">3</option><option value=\"4\">4</option><option value=\"5\">5</option>\n            </select>\n          </div>\n        </div>\n\n        <!-- ADDITIONAL INFORMATION -->\n        <p class=\"section-title\">Additional Information</p>\n\n        <div class=\"field\">\n          <label class=\"label\">Additional Information or Comments</label>\n          <textarea name=\"Informacion adicional o comentarios\" rows=\"3\"></textarea>\n        </div>\n\n        <div class=\"submit-wrap\">\n          <button type=\"submit\" class=\"submit\" id=\"submitBtn\">Submit Form</button>\n          <p class=\"form-footnote\">DATA PROTECTION: The information provided above will be used by Neblina Forest only and will not be passed on to third parties.</p>\n        </div>\n\n        <div class=\"error-box\" id=\"errorBox\">\n          We couldn't send your form. Please check your connection and try again.\n        </div>\n\n      </form>\n\n      <div class=\"success-box\" id=\"successBox\">\n        <div class=\"success-badge\">✔</div>\n        <h2>Thank you!</h2>\n        <p>Your information was submitted successfully. Our team will review it ahead of your trip and reach out if anything else is needed.</p>\n      </div>\n\n    </div>\n\n    <footer class=\"site-footer\">\n      © Neblina Forest — Connecting you with nature\n    </footer>\n\n  </div>\n\n<script>\n  // ============================================================\n  // CONFIGURATION: paste your n8n Webhook URL here.\n  // ============================================================\n  const N8N_FORM_WEBHOOK_URL = \"https://pctronix360.app.n8n.cloud/webhook-test/NF_guests_info_prueba\";\n\n  const form = document.getElementById('guestForm');\n  const submitBtn = document.getElementById('submitBtn');\n  const successBox = document.getElementById('successBox');\n  const errorBox = document.getElementById('errorBox');\n\n  form.addEventListener('submit', async function(e){\n    e.preventDefault();\n    errorBox.style.display = 'none';\n\n    if(!form.checkValidity()){\n      form.reportValidity();\n\n      const firstInvalid = form.querySelector(':invalid');\n      if(firstInvalid){\n        const fieldWrap = firstInvalid.closest('.field');\n        if(fieldWrap){\n          fieldWrap.classList.remove('shake');\n          void fieldWrap.offsetWidth;\n          fieldWrap.classList.add('shake');\n          fieldWrap.addEventListener('animationend', () => fieldWrap.classList.remove('shake'), { once: true });\n        }\n      }\n      return;\n    }\n\n    submitBtn.disabled = true;\n    submitBtn.textContent = 'Sending...';\n\n    try{\n      const formData = new FormData(form);\n\n      const response = await fetch(N8N_FORM_WEBHOOK_URL, {\n        method: 'POST',\n        body: formData\n      });\n\n      if(!response.ok){\n        throw new Error('Invalid server response');\n      }\n\n      form.style.display = 'none';\n      successBox.style.display = 'block';\n\n    }catch(err){\n      errorBox.style.display = 'block';\n      submitBtn.disabled = false;\n      submitBtn.textContent = 'Submit Form';\n    }\n  });\n</script>\n\n</body>\n</html>",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Content-Type",
+                "value": "text/html; charset=utf-8"
+              }
+            ]
+          }
+        }
+      },
+      "id": "2084004f-b6a6-4f2b-b5e1-0189837df1f4",
+      "name": "Respond to Karen",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        -976,
+        -784
+      ]
+    },
+    {
+      "parameters": {
+        "path": "NF_guests_info_prueba",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1200,
+        -784
+      ],
+      "id": "9ad88573-fe06-4e55-af75-0e2123901cae",
+      "name": "Webhook KAREN",
+      "webhookId": "bc0187bc-b142-4232-9fdb-71500e0c81a2"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "NF_guests_info_prueba",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1232,
+        -400
+      ],
+      "id": "4ff93154-61f8-4fb9-ba0b-7dccb9db93f5",
+      "name": "Webhook KAREN2",
+      "webhookId": "bc0187bc-b142-4232-9fdb-71500e0c81a2"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblKMUlG9UzdjTlrv",
+          "mode": "list",
+          "cachedResultName": "Clientes",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblKMUlG9UzdjTlrv"
+        },
+        "filterByFormula": "={{ '{Email} = \"' + $json['Correo electronico'] + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -992,
+        -400
+      ],
+      "id": "e75fa547-73ac-4a93-80d6-f76e7cf640b7",
+      "name": "Search Cliente por email1",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "b1a11001-0000-4000-8000-000000000002",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -784,
+        -400
+      ],
+      "id": "f3735873-1aca-45f4-88b0-d9335a331401",
+      "name": "¿Cliente encontrado?1"
+    },
+    {
+      "parameters": {
+        "sendTo": "velasquez46841@estudiantes.untref.edu.ar",
+        "subject": "Formulario sin cliente asociado",
+        "message": "={{ 'Llego el formulario de informacion personal, pero el email \"' + $('Webhook KAREN2').first().json['Correo electronico'] + '\" no coincide con ningun cliente registrado.\\n\\nRevisar manualmente y vincular a mano si corresponde.' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -320
+      ],
+      "id": "c17fa057-840c-43a9-bdf8-d8a10c181798",
+      "name": "Aviso: cliente no encontrado1",
+      "webhookId": "9066e567-4938-46af-86ca-8c795a20438b",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "k4tyoOxVm6vg0PFI",
+          "name": "Gmail Untref"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblRcRZOyLl7tHA29",
+          "mode": "list",
+          "cachedResultName": "Datos_personales",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblRcRZOyLl7tHA29"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Titulo": "={{ $('Webhook KAREN2').first().json['Titulo'] }}",
+            "Nombre preferido": "={{ $('Webhook KAREN2').first().json['Nombre preferido durante el viaje'] }}",
+            "Dirección": "={{ $('Webhook KAREN2').first().json['Direccion de domicilio'] }}",
+            "Pais y ciudad": "={{ $('Webhook KAREN2').first().json['Pais y ciudad'] }}",
+            "Codigo Postal": "={{ $('Webhook KAREN2').first().json['Codigo postal'] }}",
+            "Ocupación": "={{ $('Webhook KAREN2').first().json['Ocupacion'] }}",
+            "Lugar de nacimiento": "={{ $('Webhook KAREN2').first().json['Lugar de nacimiento'] }}",
+            "Contacto de emergencia": "={{ $('Webhook KAREN2').first().json['Contacto de emergencia'] }}",
+            "Comentarios adicionales": "={{ $('Webhook KAREN2').first().json['Informacion adicional o comentarios'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Titulo",
+              "displayName": "Titulo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Mr",
+                  "value": "Mr"
+                },
+                {
+                  "name": "Mrs",
+                  "value": "Mrs"
+                },
+                {
+                  "name": "Ms",
+                  "value": "Ms"
+                },
+                {
+                  "name": "Other",
+                  "value": "Other"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nombre preferido",
+              "displayName": "Nombre preferido",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Dirección",
+              "displayName": "Dirección",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Pais y ciudad",
+              "displayName": "Pais y ciudad",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Codigo Postal",
+              "displayName": "Codigo Postal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Ocupación",
+              "displayName": "Ocupación",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lugar de nacimiento",
+              "displayName": "Lugar de nacimiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Contacto de emergencia",
+              "displayName": "Contacto de emergencia",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Comentarios adicionales",
+              "displayName": "Comentarios adicionales",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -768
+      ],
+      "id": "5dd76c9e-ae61-4e30-b2fa-a935efba396c",
+      "name": "Create Datos_Personales1",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblshis9pD72YtFVg",
+          "mode": "list",
+          "cachedResultName": "Pasaporte",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblshis9pD72YtFVg"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Numero de pasaporte": "={{ $('Webhook KAREN2').first().json['Numero de pasaporte'] }}",
+            "Fecha de emisión": "={{ $('Webhook KAREN2').first().json['Fecha de emision del pasaporte'] }}",
+            "Fecha de vencimiento": "={{ $('Webhook KAREN2').first().json['Fecha de vencimiento del pasaporte'] }}",
+            "Lugar de emisión": "={{ $('Webhook KAREN2').first().json['Lugar de emision del pasaporte'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Nombre completo (from Cliente)",
+              "displayName": "Nombre completo (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Email (from Cliente)",
+              "displayName": "Email (from Cliente)",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Numero de pasaporte",
+              "displayName": "Numero de pasaporte",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de emisión",
+              "displayName": "Fecha de emisión",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de vencimiento",
+              "displayName": "Fecha de vencimiento",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Lugar de emisión",
+              "displayName": "Lugar de emisión",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -624
+      ],
+      "id": "0f0a0113-c618-4489-80ea-12270f1db6b0",
+      "name": "Create Pasaporte1",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblzrcVOYUVfgJWSc",
+          "mode": "list",
+          "cachedResultName": "Alojamiento",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblzrcVOYUVfgJWSc"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Requiere carpa individual": "={{ $('Webhook KAREN2').first().json['Requiere carpa individual'] === 'Si' }}",
+            "Tipo de habitación": "={{ $('Webhook KAREN2').first().json['Preferencia de habitacion'] === 'Double' ? 'Doble' : 'Twin' }}",
+            "Habitación": "={{ $('Webhook KAREN2').first().json['Preferencia de fumador'] }}",
+            "Talle de botas": "={{ $('Webhook KAREN2').first().json['Talla de botas de goma'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Requiere carpa individual",
+              "displayName": "Requiere carpa individual",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Tipo de habitación",
+              "displayName": "Tipo de habitación",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Doble",
+                  "value": "Doble"
+                },
+                {
+                  "name": "Twin",
+                  "value": "Twin"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Habitación",
+              "displayName": "Habitación",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Smoking",
+                  "value": "Smoking"
+                },
+                {
+                  "name": "Non-smoking",
+                  "value": "Non-smoking"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Talle de botas",
+              "displayName": "Talle de botas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -480
+      ],
+      "id": "3dc252dd-d72a-4d1e-a035-dc4631255f2d",
+      "name": "Create Alojamiento1",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbll3izHOzD27LlZw",
+          "mode": "list",
+          "cachedResultName": "Salud_y_Dieta",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tbll3izHOzD27LlZw"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Restricciones alimentarias": "={{ $('Webhook KAREN2').first().json['Restricciones alimenticias o dieta especial'] }}",
+            "Restricciones médica / alergias": "={{ $('Webhook KAREN2').first().json['Restricciones medicas o alergias'] }}",
+            "Miedo a las alturas": "={{ $('Webhook KAREN2').first().json['Miedo a las alturas'] === 'Si' }}",
+            "Requerimientos especiales": "={{ $('Webhook KAREN2').first().json['Requerimientos especiales'] }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Restricciones alimentarias",
+              "displayName": "Restricciones alimentarias",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Restricciones médica / alergias",
+              "displayName": "Restricciones médica / alergias",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Miedo a las alturas",
+              "displayName": "Miedo a las alturas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "boolean",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Requerimientos especiales",
+              "displayName": "Requerimientos especiales",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -1056
+      ],
+      "id": "bce70d8a-19cf-4c83-adcb-58dbcb5dace2",
+      "name": "Create Salud_y_Dieta1",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblHcTS8AGbufgSQn",
+          "mode": "list",
+          "cachedResultName": "Intereses",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblHcTS8AGbufgSQn"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Cliente": "={{ [$json.id] }}",
+            "Aves": "={{ Number($('Webhook KAREN2').first().json['Interes en aves']) }}",
+            "Mamíferos": "={{ Number($('Webhook KAREN2').first().json['Interes en mamiferos']) }}",
+            "Plantas": "={{ Number($('Webhook KAREN2').first().json['Interes en plantas']) }}",
+            "Insectos": "={{ Number($('Webhook KAREN2').first().json['Interes en insectos']) }}",
+            "Herpetologia": "={{ Number($('Webhook KAREN2').first().json['Interes en herpetologia']) }}",
+            "Fotografía": "={{ Number($('Webhook KAREN2').first().json['Interes en fotografia']) }}",
+            "Interés general": "={{ Number($('Webhook KAREN2').first().json['Interes general']) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Cliente",
+              "displayName": "Cliente",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "array",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Aves",
+              "displayName": "Aves",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mamíferos",
+              "displayName": "Mamíferos",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Plantas",
+              "displayName": "Plantas",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Insectos",
+              "displayName": "Insectos",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Herpetologia",
+              "displayName": "Herpetologia",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fotografía",
+              "displayName": "Fotografía",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Interés general",
+              "displayName": "Interés general",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        -912
+      ],
+      "id": "e65b4be0-0de4-498a-bef3-24c8438b6b26",
+      "name": "Create Intereses1",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "62a2ef55-94a3-4e5f-8484-f4f8d170cd69",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -672,
+        16
+      ],
+      "id": "918e74ee-36c3-4642-b3e9-56a84e82a413",
+      "name": "Usuario Nuevo"
+    }
+  ],
+  "pinData": {
+    "Webhook KAREN2": [
+      {
+        "json": {
+          "Correo electronico": "emily.johnson.prueba@gmail.com",
+          "Titulo": "Ms",
+          "Nombre preferido durante el viaje": "Emily",
+          "Direccion de domicilio": "1200 Larimer St, Apt 4B",
+          "Pais y ciudad": "Estados Unidos, Denver",
+          "Codigo postal": "80202",
+          "Ocupacion": "Fotógrafa de naturaleza",
+          "Lugar de nacimiento": "Denver, Estados Unidos",
+          "Contacto de emergencia": "Michael Johnson, +1 303 555 0199",
+          "Informacion adicional o comentarios": "Primera vez en Sudamérica",
+          "Numero de pasaporte": "US9988776",
+          "Fecha de emision del pasaporte": "2021-08-01",
+          "Fecha de vencimiento del pasaporte": "2031-08-01",
+          "Lugar de emision del pasaporte": "Denver, CO",
+          "Requiere carpa individual": "Si",
+          "Preferencia de habitacion": "Twin",
+          "Preferencia de fumador": "Non-smoking",
+          "Talla de botas de goma": "39",
+          "Restricciones alimenticias o dieta especial": "Sin gluten",
+          "Restricciones medicas o alergias": "Ninguna",
+          "Miedo a las alturas": "No",
+          "Requerimientos especiales": "Ninguno",
+          "Interes en aves": "5",
+          "Interes en mamiferos": "3",
+          "Interes en plantas": "2",
+          "Interes en insectos": "2",
+          "Interes en herpetologia": "2",
+          "Interes en fotografia": "5",
+          "Interes general": "4"
+        }
+      }
+    ],
+    "Webhook": [
+      {
+        "json": {
+          "email": "emily.johnson.prueba@gmail.com",
+          "nombre_completo": "Emily Johnson",
+          "tour_destino": "Amazonía Peruana",
+          "tipo_tour": "personalizado",
+          "fecha_viaje": "2027-03-15"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "Usuario Nuevo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Create a record1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record1": {
+      "main": [
+        [
+          {
+            "node": "Create a record2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook KAREN": {
+      "main": [
+        [
+          {
+            "node": "Respond to Karen",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook KAREN2": {
+      "main": [
+        [
+          {
+            "node": "Search Cliente por email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search Cliente por email1": {
+      "main": [
+        [
+          {
+            "node": "¿Cliente encontrado?1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Cliente encontrado?1": {
+      "main": [
+        [
+          {
+            "node": "Create Datos_Personales1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Pasaporte1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Alojamiento1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Salud_y_Dieta1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Create Intereses1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Aviso: cliente no encontrado1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Usuario Nuevo": {
+      "main": [
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "567d97b3-3738-4dd0-8958-79c4c823e4cc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "2IA08VIJHq7RPrJS",
+  "tags": []
+}

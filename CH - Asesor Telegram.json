@@ -1,0 +1,1008 @@
+{
+  "name": "CH - Asesor Telegram",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "c673eb59-5b46-4de6-9fc3-341cbfc5eba2",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -608,
+        272
+      ],
+      "webhookId": "f3d50001-webhook-telegram-asesor",
+      "credentials": {
+        "telegramApi": {
+          "id": "8uvgNjtdri48zJSi",
+          "name": "ESCLAVO DE FACTURAS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhjqtEVwbjeESAd",
+          "mode": "list",
+          "cachedResultName": "Resumenes_session",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblhjqtEVwbjeESAd"
+        },
+        "filterByFormula": "={{ '{Session_ID} = \"' + $('Telegram Trigger').first().json.message.chat.id + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -432,
+        272
+      ],
+      "id": "1dd6fb6f-feeb-4bb8-8e8d-f55557a9f02c",
+      "name": "Buscar resumen previo",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensaje }}",
+        "options": {
+          "systemMessage": "={{ $json.systemPrompt }}"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        464,
+        320
+      ],
+      "id": "b2eda3a4-a93d-488b-9d1f-a4aeba84bf2c",
+      "name": "Asistente del Asesor (AI Agent)"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "={{ $json.textoSeguro }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        960,
+        320
+      ],
+      "id": "073eceb6-837f-4847-8061-d8abce11b5ba",
+      "name": "Responder por Telegram",
+      "webhookId": "f3d50001-webhook-telegram-asesor-out",
+      "credentials": {
+        "telegramApi": {
+          "id": "8uvgNjtdri48zJSi",
+          "name": "ESCLAVO DE FACTURAS"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblm69F6hNfw9A1EJ",
+          "mode": "list",
+          "cachedResultName": "Memoria_conversaciones",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblm69F6hNfw9A1EJ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Session_ID": "={{ String($('Telegram Trigger').first().json.message.chat.id) }}",
+            "Rol": "asistente",
+            "Mensaje": "={{ $('Sanear texto para Telegram').first().json.textoSeguro }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Session_ID",
+              "displayName": "Session_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Rol",
+              "displayName": "Rol",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "usuario",
+                  "value": "usuario"
+                },
+                {
+                  "name": "asistente",
+                  "value": "asistente"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1152,
+        320
+      ],
+      "id": "407ef656-e91f-4841-bc58-91e15728e65e",
+      "name": "Guardar respuesta asistente",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblm69F6hNfw9A1EJ",
+          "mode": "list",
+          "cachedResultName": "Memoria_conversaciones",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblm69F6hNfw9A1EJ"
+        },
+        "filterByFormula": "={{ '{Session_ID} = \"' + String($('Telegram Trigger').first().json.message.chat.id) + '\"' }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1328,
+        320
+      ],
+      "id": "7c8e4e71-8f8c-455a-9c3f-38b4fe4da7d8",
+      "name": "Contar mensajes de la sesión",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const total = $input.all().length;\n// La consigna pide 'se activa al superar los 5 mensajes'. Para controlar el\n// costo de llamadas al modelo, lo resolvemos con una cadencia periodica de\n// 5 en 5 (5, 10, 15...) en vez de disparar en cada mensaje despues del\n// quinto -- el guardado sigue siendo idempotente (upsert), asi que cada\n// disparo sobrescribe el resumen anterior con la version mas reciente.\nconst UMBRAL_MENSAJES = 5;\nconst toca_resumir = total > 0 && total % UMBRAL_MENSAJES === 0;\nreturn [{ json: { toca_resumir, total_mensajes: total } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1520,
+        320
+      ],
+      "id": "fabd768a-a865-4c23-b081-794e74dc91fb",
+      "name": "Evaluar si toca resumir"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "f3d50001-0000-4000-8000-00000000000d",
+              "leftValue": "={{ $json.toca_resumir }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1680,
+        320
+      ],
+      "id": "d53dc166-4fdb-44bd-b3b6-8cb23e4eb35a",
+      "name": "¿Toca resumir?"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "urVD6H6JLgFRPd7g",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/urVD6H6JLgFRPd7g",
+          "cachedResultName": "CH - Resumidor de Sesión"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chatId": "={{ String($('Telegram Trigger').first().json.message.chat.id) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "chatId",
+              "displayName": "chatId",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1888,
+        240
+      ],
+      "id": "b7548af6-b247-4d34-a741-28a0ee9b3cd4",
+      "name": "Disparar Resumidor"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        1888,
+        416
+      ],
+      "id": "dd1a6a60-fe0d-4c86-8a81-d11b239891a5",
+      "name": "Todavía no toca resumir"
+    },
+    {
+      "parameters": {
+        "description": "Busca un cliente de Neblina Forest por Cliente_ID, email o nombre, y devuelve TODOS sus datos: informacion propia del cliente, datos personales, pasaporte, alojamiento, salud y dieta, intereses, ventas y vuelos. OBLIGATORIO: usar esta herramienta SIEMPRE que el asesor pida cualquier dato de un cliente puntual, antes de responder -- nunca respondas con datos de un cliente sin haber llamado a esta herramienta primero. De toda la informacion que te devuelve, mostrale al asesor solo la parte que pidio (por ejemplo, si pregunta por el pasaporte, mostrale solo eso, no todo el resto). Si la herramienta no encuentra al cliente, decilo explicitamente.",
+        "workflowId": {
+          "__rl": true,
+          "value": "pHDHGsg3rRpn5WuM",
+          "mode": "list",
+          "cachedResultUrl": "/workflow/pHDHGsg3rRpn5WuM",
+          "cachedResultName": "CH - Tool Buscar Cliente"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "consulta": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('consulta', ``, 'string') }}"
+          },
+          "matchingColumns": [
+            "consulta"
+          ],
+          "schema": [
+            {
+              "id": "consulta",
+              "displayName": "consulta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        512
+      ],
+      "id": "dfc801ae-2c52-4aa5-b5ba-de7a34f5d1fa",
+      "name": "Buscar Cliente (Tool)"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "claude-sonnet-5",
+          "cachedResultName": "Claude Sonnet 5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        464,
+        512
+      ],
+      "id": "555f871f-7e81-4a12-b6fb-a11bf9590c47",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const raw = $json.output || '';\n// Telegram interpreta '_' y '*' sueltos como marcado (cursiva/negrita) y\n// rompe si no encuentra el cierre -- por ejemplo 'Cliente_ID' abre una\n// cursiva que nunca cierra. Los sacamos para que llegue como texto plano\n// sin importar que caracteres use el modelo.\nconst texto = raw\n  .replace(/_/g, ' ')\n  .replace(/[*`\\[\\]]/g, '');\nreturn [{ json: { textoSeguro: texto } }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        768,
+        320
+      ],
+      "id": "fe1ca112-74c4-4d5b-bc9d-530e565313a2",
+      "name": "Sanear texto para Telegram"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "a1b20001-0000-4000-8000-000000000001",
+              "leftValue": "={{ $json.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -240,
+        272
+      ],
+      "id": "9e09c8f8-d39f-45c6-9521-d5be4787b49b",
+      "name": "¿Sesión existente?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const resumenRow = $('Buscar resumen previo').first().json;\nconst campos = resumenRow.fields || {};\nconst nombreUsuario = ($('Telegram Trigger').first().json.message.from.first_name) || 'Asesor';\n\nconst estado = campos['Estado del Caso'] || 'Sin acciones pendientes.';\nconst resumenConsolidado = campos['Resumen Consolidado'] || null;\nconst datosClave = campos['Datos Clave'] || '';\n\nlet contexto = 'Sin historial previo.';\nif (resumenConsolidado) {\n  contexto = resumenConsolidado + (datosClave ? ('\\nPuntos clave: ' + datosClave) : '');\n}\n\nconst systemPrompt = 'ROL: Sos el asistente interno de Neblina Forest (agencia de turismo de observacion de aves) para uso exclusivo del asesor humano. Tenes disponible la herramienta buscar_cliente para consultar datos de clientes ya registrados en el sistema por Cliente_ID, email o nombre.\\n\\nREGLA OBLIGATORIA: cada vez que el asesor pida datos de un cliente puntual (por su ID, su email, su nombre, o cualquier referencia a un cliente concreto), tenes que llamar a la herramienta buscar_cliente ANTES de responder -- sin excepcion, incluso si te parece que ya tenes esa informacion por el contexto de la conversacion. Nunca respondas con datos de un cliente sin haber llamado a la herramienta en ese mismo turno. Nunca inventes datos que la herramienta no haya devuelto -- si la herramienta no encuentra al cliente, decilo explicitamente y sugerile al asesor verificar el dato de busqueda.\\n\\nNo sos un agente de venta ni redactas correos: tu unico rol es informar al asesor con datos verificados por la herramienta.\\n\\nFORMATO: respondes siempre en texto plano, sin markdown -- nunca uses asteriscos, guiones bajos, ni ningun otro simbolo de formato (nada de negrita, cursiva, ni listas con guion). Si necesitas listar varios datos, separalos con saltos de linea simples o comas, en texto corrido.\\n\\nCONFIGURACION DE IDENTIDAD Y MEMORIA DE LARGO PLAZO\\nEl asesor se llama ' + nombreUsuario + '. El estado de la ultima solicitud registrada es: ' + estado + '.\\n\\n[INICIO DE CONTEXTO COMPARTIDO]\\n' + contexto + '\\n[FIN DEL CONTEXTO COMPARTIDO]';\n\nreturn [{\n  json: {\n    systemPrompt,\n    mensaje: $('Telegram Trigger').first().json.message.text,\n    chatId: String($('Telegram Trigger').first().json.message.chat.id)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        304
+      ],
+      "id": "c4d723ac-bcb3-4777-bb5d-4bc3e38cfc88",
+      "name": "Construir prompt (sesión existente)"
+    },
+    {
+      "parameters": {
+        "jsCode": "const nombreUsuario = ($('Telegram Trigger').first().json.message.from.first_name) || 'Asesor';\n\nconst systemPrompt = 'ROL: Sos el asistente interno de Neblina Forest (agencia de turismo de observacion de aves) para uso exclusivo del asesor humano. Tenes disponible la herramienta buscar_cliente para consultar datos de clientes ya registrados en el sistema por Cliente_ID, email o nombre.\\n\\nREGLA OBLIGATORIA: cada vez que el asesor pida datos de un cliente puntual (por su ID, su email, su nombre, o cualquier referencia a un cliente concreto), tenes que llamar a la herramienta buscar_cliente ANTES de responder -- sin excepcion, incluso si te parece que ya tenes esa informacion por el contexto de la conversacion. Nunca respondas con datos de un cliente sin haber llamado a la herramienta en ese mismo turno. Nunca inventes datos que la herramienta no haya devuelto -- si la herramienta no encuentra al cliente, decilo explicitamente y sugerile al asesor verificar el dato de busqueda.\\n\\nNo sos un agente de venta ni redactas correos: tu unico rol es informar al asesor con datos verificados por la herramienta.\\n\\nFORMATO: respondes siempre en texto plano, sin markdown -- nunca uses asteriscos, guiones bajos, ni ningun otro simbolo de formato (nada de negrita, cursiva, ni listas con guion). Si necesitas listar varios datos, separalos con saltos de linea simples o comas, en texto corrido.\\n\\nCONFIGURACION DE IDENTIDAD Y MEMORIA DE LARGO PLAZO\\nEl asesor se llama ' + nombreUsuario + '. No hay una solicitud previa registrada para esta sesion.\\n\\n[INICIO DE CONTEXTO COMPARTIDO]\\nSin historial previo. Esta es la primera vez que esta sesion interactua con el asistente.\\n[FIN DEL CONTEXTO COMPARTIDO]';\n\nreturn [{\n  json: {\n    systemPrompt,\n    mensaje: $('Telegram Trigger').first().json.message.text,\n    chatId: String($('Telegram Trigger').first().json.message.chat.id)\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        480
+      ],
+      "id": "9a53106a-2eab-4f3c-a1c7-be2993c5371e",
+      "name": "Construir prompt (sesión nueva)"
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblhjqtEVwbjeESAd",
+          "mode": "list",
+          "cachedResultName": "Resumenes_session",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblhjqtEVwbjeESAd"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Session_ID": "={{ String($('Telegram Trigger').first().json.message.chat.id) }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Session_ID",
+              "displayName": "Session_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Resumen_consolidado",
+              "displayName": "Resumen_consolidado",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha de actualización",
+              "displayName": "Fecha de actualización",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Estado del caso",
+              "displayName": "Estado del caso",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Datos claves",
+              "displayName": "Datos claves",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        -160,
+        480
+      ],
+      "id": "e95a052e-6e7d-43ca-877d-91cbec85460c",
+      "name": "Crear registro inicial",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblm69F6hNfw9A1EJ",
+          "mode": "list",
+          "cachedResultName": "Memoria_conversaciones",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblm69F6hNfw9A1EJ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Session_ID": "={{ String($('Telegram Trigger').first().json.message.chat.id) }}",
+            "Mensaje": "={{ $('Telegram Trigger').first().json.message.text }}",
+            "Rol": "usuario"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Session_ID",
+              "displayName": "Session_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Rol",
+              "displayName": "Rol",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "usuario",
+                  "value": "usuario"
+                },
+                {
+                  "name": "asistente",
+                  "value": "asistente"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        304
+      ],
+      "id": "8716225b-1894-4c29-969e-fa82c2d4146d",
+      "name": "Guardar mensaje (existente)",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "airtableOAuth2Api",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appBodpqz5z03xWx2",
+          "mode": "list",
+          "cachedResultName": "Neblina Forest DATA",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblm69F6hNfw9A1EJ",
+          "mode": "list",
+          "cachedResultName": "Memoria_conversaciones",
+          "cachedResultUrl": "https://airtable.com/appBodpqz5z03xWx2/tblm69F6hNfw9A1EJ"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Session_ID": "={{ String($('Telegram Trigger').first().json.message.chat.id) }}",
+            "Mensaje": "={{ $('Telegram Trigger').first().json.message.text }}",
+            "Rol": "usuario"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Session_ID",
+              "displayName": "Session_ID",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Rol",
+              "displayName": "Rol",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "usuario",
+                  "value": "usuario"
+                },
+                {
+                  "name": "asistente",
+                  "value": "asistente"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Mensaje",
+              "displayName": "Mensaje",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Fecha",
+              "displayName": "Fecha",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        32,
+        480
+      ],
+      "id": "b5adaf10-cb2c-4833-97be-ae1bc484dfc5",
+      "name": "Guardar mensaje (nueva)",
+      "credentials": {
+        "airtableOAuth2Api": {
+          "id": "LBfp9za9OsCM3o1c",
+          "name": "Airtable Velasquez UNTREF"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Buscar resumen previo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar resumen previo": {
+      "main": [
+        [
+          {
+            "node": "¿Sesión existente?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Asistente del Asesor (AI Agent)": {
+      "main": [
+        [
+          {
+            "node": "Sanear texto para Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Responder por Telegram": {
+      "main": [
+        [
+          {
+            "node": "Guardar respuesta asistente",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar respuesta asistente": {
+      "main": [
+        [
+          {
+            "node": "Contar mensajes de la sesión",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contar mensajes de la sesión": {
+      "main": [
+        [
+          {
+            "node": "Evaluar si toca resumir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evaluar si toca resumir": {
+      "main": [
+        [
+          {
+            "node": "¿Toca resumir?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Toca resumir?": {
+      "main": [
+        [
+          {
+            "node": "Disparar Resumidor",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Todavía no toca resumir",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar Cliente (Tool)": {
+      "ai_tool": [
+        [
+          {
+            "node": "Asistente del Asesor (AI Agent)",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Asistente del Asesor (AI Agent)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sanear texto para Telegram": {
+      "main": [
+        [
+          {
+            "node": "Responder por Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Sesión existente?": {
+      "main": [
+        [
+          {
+            "node": "Guardar mensaje (existente)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Crear registro inicial",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir prompt (sesión existente)": {
+      "main": [
+        [
+          {
+            "node": "Asistente del Asesor (AI Agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir prompt (sesión nueva)": {
+      "main": [
+        [
+          {
+            "node": "Asistente del Asesor (AI Agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Crear registro inicial": {
+      "main": [
+        [
+          {
+            "node": "Guardar mensaje (nueva)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar mensaje (existente)": {
+      "main": [
+        [
+          {
+            "node": "Construir prompt (sesión existente)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Guardar mensaje (nueva)": {
+      "main": [
+        [
+          {
+            "node": "Construir prompt (sesión nueva)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "820c2ea5-b196-427f-9543-0b2fe1375a0d",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "Vx5yZ0NJzoJsK40Q",
+  "tags": []
+}

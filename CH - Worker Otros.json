@@ -1,0 +1,205 @@
+{
+  "name": "CH - Worker Otros",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "subject"
+            },
+            {
+              "name": "body"
+            }
+          ]
+        }
+      },
+      "id": "dba9f9cd-bf9c-4635-a516-e993f2e2a2df",
+      "name": "Trigger: recibir tarea",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -736,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### WORKER · Triage de Otros\n**Entrada esperada:** `{ subject, body }`\n\n-> Se encarga de clasificar todos los correos que no sean para el area de registro de datos de vuelos de clientes ni para compras.\nPor o que recepciona y clasifica segun el nivel de importancia para escalar con el asesor solo los casos de Alta importancia\n",
+        "height": 206,
+        "width": 920
+      },
+      "id": "92ca2c59-3151-4a74-928c-043310e1fe0c",
+      "name": "Nota: contrato de este Worker",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -768,
+        -80
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "d3a7f1c0-3001-4b6e-8a12-000000000002",
+              "name": "subject",
+              "type": "string",
+              "value": "={{ $json.subject || '(sin asunto)' }}"
+            },
+            {
+              "id": "d3a7f1c0-3001-4b6e-8a12-000000000003",
+              "name": "body_trimmed",
+              "type": "string",
+              "value": "={{ $json.body ? $json.body.slice(0, 2000) : '' }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b8a76556-0590-49e2-9d76-b3907bbfdf7a",
+      "name": "Preparar entrada (recorte de tokens)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -400,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Asunto: ' + $json.subject + '\\n\\nCuerpo:\\n' + $json.body_trimmed }}",
+        "options": {
+          "systemMessage": "ROL: Evaluas la importancia de un correo de Neblina Forest que NO es sobre datos de vuelo ni sobre compra de un tour (cae en la categoria OTROS del sistema). Tu unica tarea es clasificar: nunca redactes una respuesta ni sugieras una accion. IMPORTANCIA (taxonomia cerrada, exactamente 2 valores): ALTA o BAJA. Es ALTA si el correo encaja en al menos una de estas categorias, con evidencia concreta en el texto: RECLAMO (el remitente expresa una queja, disconformidad o problema con el servicio), RESERVA_HABITACION (pide, confirma o modifica una reserva de alojamiento: hotel, posada, lodge), RESPUESTA_RESERVA (es la respuesta de un proveedor de alojamiento a una reserva ya solicitada: confirmacion, rechazo, cambio de disponibilidad), EQUIPO_INTERNO (el remitente pertenece al equipo de Neblina Forest, a juzgar por el dominio de correo, la firma o el contenido), INFO_CLIENTE (el cliente pide informacion que necesita para su viaje y no la tiene: documentacion, itinerario, punto de encuentro, contacto de emergencia), PAGO (el correo menciona un pago, transferencia, comprobante o disputa de cobro). Es BAJA en cualquier otro caso: agradecimientos, mensajes informativos sin pedido, prensa, publicidad, contactos genericos sin ninguna de las categorias anteriores. PROCEDIMIENTO OBLIGATORIO: revisa el texto contra las 6 categorias de ALTA en orden. Si encuentra evidencia concreta de al menos una, la importancia es ALTA y devolve esa categoria en el campo categoria. Si no encuentra ninguna, es BAJA y categoria es null. CALIBRACION DE CONFIANZA: 0.90 a 1.00 si la categoria esta explicita en el texto, 0.70 a 0.89 si se infiere con razonable certeza, menor a 0.70 si estas adivinando. No infles la confianza. El campo importancia se escribe en minusculas (alta o baja). El campo categoria se escribe en mayusculas, exactamente como aparece en la lista, o null si es baja. SALIDA: devolve UNICAMENTE un objeto JSON con las claves importancia, categoria, confianza y motivo, todas al mismo nivel. El campo motivo es OBLIGATORIO SIEMPRE, incluso cuando importancia es baja -- en ese caso, explica brevemente por que el correo no encaja en ninguna de las 6 categorias de ALTA. Sin envolver el objeto en ninguna clave adicional, sin markdown, sin bloque de codigo, sin texto antes o despues del JSON."
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -192,
+        320
+      ],
+      "id": "e689475e-9bf5-4f34-a390-ab1c6602d841",
+      "name": "Clasificar importancia (AI Agent)1",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGoogleGemini",
+      "typeVersion": 1.1,
+      "position": [
+        -192,
+        544
+      ],
+      "id": "43ba3459-09ef-439c-a4ef-12251a208a50",
+      "name": "Google Gemini Chat Model",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "vooM42BDEHxtgqxh",
+          "name": "Google Gemini CODERHOUSE"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst UMBRAL_CONFIANZA = 0.75;\nconst CATEGORIAS_ALTA = ['RECLAMO', 'RESERVA_HABITACION', 'RESPUESTA_RESERVA', 'EQUIPO_INTERNO', 'INFO_CLIENTE', 'PAGO'];\n\n// Acepta tanto texto crudo (JSON.parse manual) como el objeto ya\n// estructurado si viene del Structured Output Parser, y tolera que el\n// modelo envuelva la respuesta en una clave extra como 'output'.\nlet raw = item.output;\nif (raw && typeof raw === 'object') {\n  raw = raw.output && typeof raw.output === 'object' ? raw.output : raw;\n} else {\n  raw = (raw || '').toString().replace(/```json|```/g, '').trim();\n  try {\n    const parsed = JSON.parse(raw);\n    raw = (parsed.output && typeof parsed.output === 'object') ? parsed.output : parsed;\n  } catch (e) {\n    raw = null;\n  }\n}\n\nlet data = raw;\nif (data && typeof data.importancia === 'string') {\n  data = { ...data, importancia: data.importancia.toLowerCase() };\n}\nif (data && typeof data.categoria === 'string') {\n  data = { ...data, categoria: data.categoria.toUpperCase() };\n}\n\nif (!data || !['alta', 'baja'].includes(data.importancia) ||\n    (data.importancia === 'alta' && data.categoria && !CATEGORIAS_ALTA.includes(data.categoria))) {\n  data = { importancia: 'alta', categoria: null, confianza: 0, motivo: 'Salida invalida del modelo, forzada a revision.' };\n}\n\nconst n = Number(data.confianza);\nconst confianza = Number.isFinite(n) ? n : 0;\n\nif (data.importancia === 'baja' && confianza < UMBRAL_CONFIANZA) {\n  data.importancia = 'alta';\n  data.categoria = data.categoria || 'REVISION_BAJA_CONFIANZA';\n}\n\nreturn [{\n  json: {\n    status: 'success',\n    data: {\n      importancia: data.importancia,\n      categoria: data.categoria || null,\n      confianza,\n      umbral: UMBRAL_CONFIANZA,\n      motivo: data.motivo || ''\n    },\n    meta: { worker: 'worker_triage_otros', model: 'gemini-agent' }\n  }\n}];"
+      },
+      "id": "a3a8e58f-1c7d-45a7-944c-e98661bd421f",
+      "name": "Normalizar salida (éxito)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        192
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const err = $input.first().json;\nreturn [{\n  json: {\n    status: 'error',\n    data: {\n      importancia: 'alta',\n      categoria: 'FALLO_WORKER',\n      confianza: 0,\n      umbral: 0.75,\n      motivo: 'No se pudo evaluar automaticamente: el Worker fallo.',\n      reason: 'worker_call_failed',\n      detail: (err.error && err.error.message) || err.message || 'Error desconocido al invocar el modelo'\n    },\n    meta: { worker: 'worker_triage_otros' }\n  }\n}];"
+      },
+      "id": "9e9a419e-177e-4903-889d-7a777a66f402",
+      "name": "Contingencia por fallo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        256,
+        480
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger: recibir tarea": {
+      "main": [
+        [
+          {
+            "node": "Preparar entrada (recorte de tokens)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar entrada (recorte de tokens)": {
+      "main": [
+        [
+          {
+            "node": "Clasificar importancia (AI Agent)1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clasificar importancia (AI Agent)1": {
+      "main": [
+        [
+          {
+            "node": "Normalizar salida (éxito)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Contingencia por fallo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Google Gemini Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Clasificar importancia (AI Agent)1",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false,
+    "timeSavedMode": "fixed",
+    "callerPolicy": "workflowsFromSameOwner",
+    "executionTimeout": 60
+  },
+  "versionId": "1acab121-fde2-4597-9f09-28ea0d4d6f8b",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8e03ea8c431f12e2c827e605e5f1986789dd62145ba52289ac2256d5427a3cfb"
+  },
+  "nodeGroups": [],
+  "id": "UHF0DpM6uwTL7g11",
+  "tags": []
+}
